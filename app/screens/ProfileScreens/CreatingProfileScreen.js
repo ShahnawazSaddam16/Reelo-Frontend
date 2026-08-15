@@ -1,5 +1,5 @@
 import React from 'react'
-import { StatusBar, View } from 'react-native'
+import { StatusBar, View, Text } from 'react-native'
 
 export default function CreatingProfileScreen() {
   return (
