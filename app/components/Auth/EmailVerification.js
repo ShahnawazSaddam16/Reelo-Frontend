@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, Modal } from "react-native";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const API_URL = "http://192.168.100.77:5015/api";
 
 export default function EmailVerification({ email, onVerified, onBack }) {
+  const { login } = useAuth();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
@@ -34,6 +36,12 @@ export default function EmailVerification({ email, onVerified, onBack }) {
         showAlert("Verification Failed", data.message || "Invalid code");
         return;
       }
+
+      const token = data?.token || data?.accessToken || data?.access_token;
+      if (token) {
+        await login(token, data.user);
+      }
+
       onVerified();
     } catch (err) {
       showAlert("Error", "Something went wrong. Please try again.");

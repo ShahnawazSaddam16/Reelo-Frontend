@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
-const API_URL = "https://192.168.100.77:5015/api";
+const API_URL = "http://192.168.100.77:5015/api";
 
 const AuthContext = createContext();
 
