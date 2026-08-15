@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, Modal } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
 import EmailVerification from "./EmailVerification.js";
 
 const API_URL = "http://192.168.100.77:5015/api";
@@ -41,6 +42,12 @@ export default function SignIn({ setSignIn }) {
         showAlert("Sign Up Failed", data.message || "Something went wrong");
         return;
       }
+
+      const token = data?.token || data?.accessToken || data?.access_token;
+      if (token) {
+        await SecureStore.setItemAsync("token", token);
+      }
+
       setShowVerification(true);
     } catch (err) {
       showAlert("Error", "Something went wrong. Please try again.");
