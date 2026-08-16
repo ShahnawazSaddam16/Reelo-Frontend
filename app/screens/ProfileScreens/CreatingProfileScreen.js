@@ -14,7 +14,7 @@ export default function CreatingProfileScreen() {
 
   const checkProfile = async () => {
     try {
-      const res = await fetch(`${API_URL}/profile/me`, {
+      const res = await fetch(`${API_URL}/profile/user-profile`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -23,14 +23,14 @@ export default function CreatingProfileScreen() {
       });
       const data = await res.json();
 
-      if (!res.ok || !data.success) {
+      if (res.ok && data.success && data.profile) {
         navigation.replace("HomeScreen");
         return;
       }
 
       setChecking(false);
     } catch (err) {
-      navigation.replace("HomeScreen");
+      setChecking(false);
     }
   };
 
