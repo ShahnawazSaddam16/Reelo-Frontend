@@ -105,6 +105,8 @@ export default function CreatingProfile() {
       }
 
       showAlert("Success", "Your profile has been created", true);
+      navigation.navigate("HomeScreen");
+      
     } catch (err) {
       showAlert("Error", "Something went wrong. Please try again.");
     } finally {
@@ -114,7 +116,6 @@ export default function CreatingProfile() {
 
   const closeAlert = () => {
     setAlertVisible(false);
-    navigation.navigate("HomeScreen");
   };
 
   return (
@@ -127,7 +128,7 @@ export default function CreatingProfile() {
         className="flex-1 items-center justify-center"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center" }}
+          contentContainerStyle={{ flex: 1, alignItems: "center", justifyContent: "center" }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           className="w-full"
@@ -135,7 +136,7 @@ export default function CreatingProfile() {
           <BlurView
             intensity={40}
             tint="dark"
-            className="w-[90%] max-w-[380px] rounded-2xl border border-[#2A2A2A] p-6 overflow-hidden"
+            className="w-[300px] rounded-2xl border border-[#2A2A2A] p-6 overflow-hidden"
           >
             <View className="flex-row items-center mb-6">
               {step === 2 && (
