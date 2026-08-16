@@ -31,6 +31,7 @@ export default function CreatingProfileScreen() {
       setChecking(false);
     } catch (err) {
       setChecking(false);
+      navigation.replace("CreatingProfileScreen")
     }
   };
 

@@ -67,7 +67,7 @@ export default function SignIn({ setSignIn }) {
   }
 
   return (
-    <View className="w-[90%] max-w-[380px] bg-[#181818] rounded-2xl border border-[#2A2A2A] p-6">
+    <View className="w-[90%] max-w-[380px] bg-[#121216] rounded-2xl border border-white/[0.08] p-6">
       <Text className="text-white text-[22px] font-semibold mb-1">
         Create account
       </Text>
@@ -118,12 +118,12 @@ export default function SignIn({ setSignIn }) {
       <TouchableOpacity
         onPress={handleSignUp}
         disabled={loading}
-        className="bg-white rounded-xl py-3 items-center mb-4"
+        className="bg-[#8B5CF6] rounded-xl py-3 items-center mb-4"
       >
         {loading ? (
-          <ActivityIndicator color="#181818" />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
-          <Text className="text-[#181818] text-[15px] font-semibold">
+          <Text className="text-white text-[15px] font-semibold">
             Sign Up
           </Text>
         )}
@@ -147,7 +147,7 @@ export default function SignIn({ setSignIn }) {
         onRequestClose={() => setAlertVisible(false)}
       >
         <View className="flex-1 items-center justify-center bg-black/60 px-6">
-          <View className="w-full max-w-[320px] bg-[#181818] rounded-2xl border border-[#2A2A2A] p-6">
+          <View className="w-full max-w-[320px] bg-[#121216] rounded-2xl border border-white/[0.08] p-6">
             <Text className="text-white text-[17px] font-semibold mb-2">
               {alertTitle}
             </Text>
@@ -156,9 +156,9 @@ export default function SignIn({ setSignIn }) {
             </Text>
             <TouchableOpacity
               onPress={() => setAlertVisible(false)}
-              className="bg-white rounded-xl py-3 items-center"
+              className="bg-[#8B5CF6] rounded-xl py-3 items-center"
             >
-              <Text className="text-[#181818] text-[15px] font-semibold">
+              <Text className="text-white text-[15px] font-semibold">
                 OK
               </Text>
             </TouchableOpacity>

@@ -120,8 +120,8 @@ export default function CreatingProfile() {
 
   return (
     <View className="flex-1 bg-[#0E0E10]">
-      <View className="absolute w-[260px] h-[260px] rounded-full bg-[#A3FF12] opacity-[0.06] -top-[60px] -left-[60px]" />
-      <View className="absolute w-[220px] h-[220px] rounded-full bg-[#A3FF12] opacity-[0.05] -bottom-[40px] -right-[40px]" />
+      <View className="absolute w-[260px] h-[260px] rounded-full bg-[#8B5CF6] opacity-[0.06] -top-[60px] -left-[60px]" />
+      <View className="absolute w-[220px] h-[220px] rounded-full bg-[#6366F1] opacity-[0.05] -bottom-[40px] -right-[40px]" />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -136,7 +136,7 @@ export default function CreatingProfile() {
           <BlurView
             intensity={40}
             tint="dark"
-            className="w-[300px] rounded-2xl border border-[#2A2A2A] p-6 overflow-hidden"
+            className="w-[300px] rounded-2xl border border-white/[0.08] p-6 overflow-hidden"
           >
             <View className="flex-row items-center mb-6">
               {step === 2 && (
@@ -164,12 +164,12 @@ export default function CreatingProfile() {
             <View className="flex-row justify-center mb-7">
               <View
                 className={`h-[3px] w-[32px] rounded-full mr-2 ${
-                  step === 1 ? "bg-[#A3FF12]" : "bg-[#2A2A2A]"
+                  step === 1 ? "bg-[#8B5CF6]" : "bg-[#2A2A2A]"
                 }`}
               />
               <View
                 className={`h-[3px] w-[32px] rounded-full ${
-                  step === 2 ? "bg-[#A3FF12]" : "bg-[#2A2A2A]"
+                  step === 2 ? "bg-[#8B5CF6]" : "bg-[#2A2A2A]"
                 }`}
               />
             </View>
@@ -192,7 +192,7 @@ export default function CreatingProfile() {
                   <TouchableOpacity
                     onPress={pickImage}
                     activeOpacity={0.8}
-                    className="absolute bottom-[26px] right-[calc(50%-46px)] w-[30px] h-[30px] rounded-full bg-[#A3FF12] items-center justify-center border-2 border-[#181818]"
+                    className="absolute bottom-[26px] right-[calc(50%-46px)] w-[30px] h-[30px] rounded-full bg-[#8B5CF6] items-center justify-center border-2 border-[#181818]"
                   >
                     <Pencil size={14} color="#0E0E10" />
                   </TouchableOpacity>
@@ -220,9 +220,9 @@ export default function CreatingProfile() {
                 <TouchableOpacity
                   onPress={handleNext}
                   activeOpacity={0.85}
-                  className="bg-[#A3FF12] rounded-xl py-[14px] items-center"
+                  className="bg-[#8B5CF6] rounded-xl py-[14px] items-center"
                 >
-                  <Text className="text-[#0E0E10] text-[15px] font-bold tracking-[0.2px]">
+                  <Text className="text-white text-[15px] font-bold tracking-[0.2px]">
                     Next
                   </Text>
                 </TouchableOpacity>
@@ -265,13 +265,13 @@ export default function CreatingProfile() {
                   onPress={handleCreateProfile}
                   disabled={loading}
                   activeOpacity={0.85}
-                  className="bg-[#A3FF12] rounded-xl py-[14px] items-center mb-3"
+                  className="bg-[#8B5CF6] rounded-xl py-[14px] items-center mb-3"
                   style={{ opacity: loading ? 0.7 : 1 }}
                 >
                   {loading ? (
-                    <ActivityIndicator color="#0E0E10" />
+                    <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text className="text-[#0E0E10] text-[15px] font-bold tracking-[0.2px]">
+                    <Text className="text-white text-[15px] font-bold tracking-[0.2px]">
                       Create Profile
                     </Text>
                   )}
@@ -303,11 +303,11 @@ export default function CreatingProfile() {
             <View className="items-center mb-4">
               <View
                 className={`w-[52px] h-[52px] rounded-full items-center justify-center mb-3 ${
-                  alertSuccess ? "bg-[#A3FF12]/15" : "bg-red-500/15"
+                  alertSuccess ? "bg-[#8B5CF3]/15" : "bg-red-500/15"
                 }`}
               >
                 {alertSuccess ? (
-                  <CheckCircle2 size={26} color="#A3FF12" />
+                  <CheckCircle2 size={26} color="#8B5CF6" />
                 ) : (
                   <AlertCircle size={26} color="#FF5C5C" />
                 )}

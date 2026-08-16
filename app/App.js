@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AuthScreen from "./screens/AuthScreen";
 import CreatingProfileScreen from "./screens/ProfileScreens/CreatingProfileScreen";
 import HomeScreen from "./screens/HomeScreen";
-import ProfileScreen from "./screens/ProfileScreen";
+import ProfileScreen from "./screens/ProfileScreens/ProfileScreen";
 import { AuthProvider } from "../contexts/AuthContext";
 
 const Stack = createNativeStackNavigator();
