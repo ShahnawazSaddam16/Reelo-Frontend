@@ -6,27 +6,36 @@ import {
   ActivityIndicator,
   ScrollView,
   Pressable,
+  RefreshControl,
 } from "react-native";
-import { Link2, PenLine, ShieldCheck, User } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  Link2,
+  PenLine,
+  ShieldCheck,
+  User,
+  Mail,
+  Sparkles,
+} from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 
 export default function UserProfile() {
   const API_URL = "http://192.168.100.77:5015/api";
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState(null);
   const { token } = useAuth();
 
   const resolveAvatarUrl = (path) => {
     if (!path) return null;
-    // If an object with a uri (e.g. expo image) is passed, use its uri
     if (typeof path === "object" && path.uri) return path.uri;
     if (path.startsWith("http://") || path.startsWith("https://")) return path;
     const baseUrl = API_URL.replace(/\/api$/, "");
     return `${baseUrl}/${path.replace(/\\/g, "/")}`;
   };
 
-  const fetchProfile = async () => {
-    setLoading(true);
+  const fetchProfile = async (isRefresh = false) => {
+    isRefresh ? setRefreshing(true) : setLoading(true);
     try {
       const res = await fetch(`${API_URL}/profile/user-profile`, {
         method: "GET",
@@ -43,7 +52,7 @@ export default function UserProfile() {
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      isRefresh ? setRefreshing(false) : setLoading(false);
     }
   };
 
@@ -54,94 +63,149 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-[#0E0E10]">
-        <ActivityIndicator color="#FFFFFF" size="large" />
+      <View className="flex-1 items-center justify-center bg-[#0B0B0D]">
+        <ActivityIndicator color="#8B5CF6" size="large" />
       </View>
     );
   }
 
   const postsCount = profile?.postsCount ?? 0;
   const likesCount = profile?.likesCount ?? 0;
-  // Resolve avatar from possible fields (`avator` or `avatar`) and handle objects
   const avatarUrl = resolveAvatarUrl(profile?.avator ?? profile?.avatar);
 
   return (
     <ScrollView
-      className="flex-1 bg-[#0E0E10]"
+      className="flex-1 bg-[#0B0B0D]"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 140 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={() => fetchProfile(true)}
+          tintColor="#8B5CF6"
+        />
+      }
     >
       <View className="px-5 pb-8 pt-10">
-        <View className="mb-6 flex-row items-center justify-between">
-          <Text className="text-[26px] font-bold text-white">Profile</Text>
-          <Pressable className="h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5">
-            <PenLine size={16} color="#F8FAFC" />
+        <View className="mb-7 flex-row items-center justify-between">
+          <View>
+            <Text className="text-[26px] font-bold text-white">Profile</Text>
+            <Text className="mt-0.5 text-[13px] text-zinc-500">
+              Your public presence
+            </Text>
+          </View>
+          <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70">
+            <PenLine size={16} color="#F4F4F5" />
           </Pressable>
         </View>
 
-        <View className="rounded-[30px] border border-white/10 bg-[#111317] p-4 shadow-black shadow-lg">
-          <View className="mb-5 flex-row items-center">
-            <View className="mr-4 h-[92px] w-[92px] items-center justify-center overflow-hidden rounded-full border border-[#2A2A2A] bg-[#1B1B1F]">
-              {avatarUrl ? (
-                <Image
-                  source={{ uri: avatarUrl }}
-                  resizeMode="cover"
-                  style={{ width: 92, height: 92, borderRadius: 46 }}
-                />
+        <View className="overflow-hidden rounded-[32px] border border-white/[0.08] bg-[#121216]">
+          <LinearGradient
+            colors={["rgba(139,92,246,0.18)", "rgba(18,18,22,0)"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20 }}
+          >
+            <View className="flex-row items-center">
+              <View className="mr-4">
+                <LinearGradient
+                  colors={["#8B5CF6", "#6366F1"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: 96,
+                    height: 96,
+                    borderRadius: 48,
+                    padding: 3,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <View className="h-[90px] w-[90px] items-center justify-center overflow-hidden rounded-full bg-[#1B1B1F]">
+                    {avatarUrl ? (
+                      <Image
+                        source={{ uri: avatarUrl }}
+                        resizeMode="cover"
+                        style={{ width: 90, height: 90, borderRadius: 45 }}
+                      />
+                    ) : (
+                      <User size={38} color="#A1A1AA" />
+                    )}
+                  </View>
+                </LinearGradient>
+              </View>
+
+              <View className="flex-1 flex-row justify-around">
+                <View className="items-center">
+                  <Text className="text-[19px] font-bold text-white">
+                    {postsCount}
+                  </Text>
+                  <Text className="mt-1 text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                    Posts
+                  </Text>
+                </View>
+                <View className="h-8 w-px bg-white/10" />
+                <View className="items-center">
+                  <Text className="text-[19px] font-bold text-white">
+                    {likesCount}
+                  </Text>
+                  <Text className="mt-1 text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                    Likes
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View className="mt-5">
+              <View className="flex-row items-center">
+                <Text className="text-[21px] font-bold text-white">
+                  {profile?.username || "Unknown user"}
+                </Text>
+                <View className="ml-2">
+                  <ShieldCheck size={17} color="#8B5CF6" />
+                </View>
+              </View>
+              <View className="mt-1.5 flex-row items-center">
+                <Mail size={12} color="#71717A" />
+                <Text className="ml-1.5 text-[13px] text-zinc-500">
+                  {profile?.email || "No email available"}
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
+
+          <View className="px-5 pb-5 mt-3">
+            <View className="mb-3 rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
+              <View className="mb-2 flex-row items-center">
+                <Sparkles size={13} color="#8B5CF6" />
+                <Text className="ml-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                  Bio
+                </Text>
+              </View>
+              <Text className="text-[14px] leading-6 text-zinc-300">
+                {profile?.bio || "No bio added yet."}
+              </Text>
+            </View>
+
+            <View className="rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
+              <Text className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                Links
+              </Text>
+              {profile?.links ? (
+                <Pressable className="flex-row items-center active:opacity-70">
+                  <View className="h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6]/15">
+                    <Link2 size={13} color="#A78BFA" />
+                  </View>
+                  <Text className="ml-2.5 text-[14px] text-zinc-300">
+                    {profile.links}
+                  </Text>
+                </Pressable>
               ) : (
-                <User size={40} color="#71717A" />
+                <Text className="text-[14px] text-zinc-600">
+                  No links added yet.
+                </Text>
               )}
             </View>
-
-            <View className="flex-1 flex-row justify-around">
-              <View className="items-center">
-                <Text className="text-[18px] font-bold text-white">
-                  {postsCount}
-                </Text>
-                <Text className="mt-1 text-[12px] text-zinc-400">Posts</Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-[18px] font-bold text-white">
-                  {likesCount}
-                </Text>
-                <Text className="mt-1 text-[12px] text-zinc-400">Likes</Text>
-              </View>
-            </View>
-          </View>
-
-          <View className="mb-5">
-            <View className="flex-row items-center">
-              <Text className="text-[20px] font-bold text-white">
-                {profile?.username || "Unknown user"}
-              </Text>
-              <ShieldCheck size={16} color="#8B5CF6" className="ml-2" />
-            </View>
-            <Text className="mt-1 text-[13px] text-zinc-400">
-              {profile?.email || "No email available"}
-            </Text>
-          </View>
-
-          <View className="mb-4 rounded-[20px] border border-white/5 bg-[#15181D] p-4">
-            <Text className="mb-2 text-[13px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              About
-            </Text>
-            <Text className="text-[14px] leading-6 text-zinc-300">
-              {profile?.bio || "No bio added yet."}
-            </Text>
-          </View>
-
-          <View className="rounded-[20px] border border-white/5 bg-[#15181D] p-3">
-            <Text className="mb-2 text-[13px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Links
-            </Text>
-            {profile?.links ? (
-              <View className="flex-row items-center">
-                <Link2 size={15} color="#A1A1AA" />
-                <Text className="ml-2 text-[14px] text-zinc-300">{profile.links}</Text>
-              </View>
-            ) : (
-              <Text className="text-[14px] text-zinc-500">No links added yet.</Text>
-            )}
           </View>
         </View>
       </View>
