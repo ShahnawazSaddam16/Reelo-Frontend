@@ -9,7 +9,6 @@ export default function ProfileScreen() {
     <View className="flex-1 bg-[#0E0E10]">
       <StatusBar barStyle="light-content" />
       <UserProfile />
-      <ManagingPosts />
       <BottomBar />
     </View>
   );

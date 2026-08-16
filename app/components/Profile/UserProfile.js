@@ -8,6 +8,7 @@ import {
   Pressable,
   RefreshControl,
 } from "react-native";
+import ManagingPosts from "./ManagingPosts";
 import { LinearGradient } from "expo-linear-gradient";
 import {
   Link2,
@@ -75,7 +76,7 @@ export default function UserProfile() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#0B0B0D]"
+      className="flex-1"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 140 }}
       refreshControl={
@@ -208,7 +209,10 @@ export default function UserProfile() {
             </View>
           </View>
         </View>
+        <View className="w-full h-[1px] mt-3 bg-white/50"></View>
       </View>
+
+      <ManagingPosts />
     </ScrollView>
   );
 }
