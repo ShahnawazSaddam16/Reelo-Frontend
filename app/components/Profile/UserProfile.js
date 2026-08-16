@@ -19,12 +19,14 @@ import {
   Sparkles,
 } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
+import EditProfile from "./EditProfile";
 
 export default function UserProfile() {
   const API_URL = "http://192.168.100.77:5015/api";
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [edit, setEdit] = useState("");
   const { token } = useAuth();
 
   const resolveAvatarUrl = (path) => {
@@ -95,8 +97,9 @@ export default function UserProfile() {
               Your public presence
             </Text>
           </View>
-          <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70">
-            <PenLine size={16} color="#F4F4F5" />
+          <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
+          onPress={()=>{setEdit(true)}}>
+            <PenLine size={16} color="#F4F4F5"/>
           </Pressable>
         </View>
 
@@ -212,6 +215,7 @@ export default function UserProfile() {
         <View className="w-full h-[1px] mt-3 bg-white/50"></View>
       </View>
 
+      <EditProfile edit={edit} setEdit={setEdit}/>
       <ManagingPosts />
     </ScrollView>
   );
