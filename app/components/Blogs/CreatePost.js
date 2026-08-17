@@ -115,7 +115,7 @@ export default function CreatePost() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      className="flex-1 bg-[#0B0B0D]"
+      className="flex-1 w-full"
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
