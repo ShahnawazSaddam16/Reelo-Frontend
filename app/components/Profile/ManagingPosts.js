@@ -20,7 +20,7 @@ import { useAuth } from "../../../contexts/AuthContext"
 const PAGE_SIZE = 6
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
-const SLIDE_HEIGHT = 500
+const SLIDE_HEIGHT = 420
 
 export default function ManagingPosts() {
   const API_URL = "http://192.168.100.77:5015/api"
