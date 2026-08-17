@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text, StatusBar} from "react-native";
 import CreatePost from "../../components/Blogs/CreatePost";
-import Bottombar from "../../components/App-Shell/BottomBar";
+import BottomBar from "../../components/App-Shell/BottomBar";
 
 export default function CreatePostScreen() {
   return (
