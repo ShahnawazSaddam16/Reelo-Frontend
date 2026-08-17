@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import {
   View,
   Text,
@@ -6,14 +6,21 @@ import {
   Image,
   ActivityIndicator,
   FlatList,
-  RefreshControl,
+  Modal,
+  TouchableOpacity,
+  Alert,
+  Dimensions,
 } from "react-native"
 import { Video } from "expo-av"
+import Swiper from "react-native-swiper"
 import { useNavigation } from "@react-navigation/native"
-import { PlusCircle, ImageOff, FileText } from "lucide-react-native"
+import { PlusCircle, ImageOff, FileText, MoreVertical, Pencil, Trash2, X, RefreshCw } from "lucide-react-native"
 import { useAuth } from "../../../contexts/AuthContext"
 
 const PAGE_SIZE = 6
+const SCREEN_WIDTH = Dimensions.get("window").width
+const SCREEN_HEIGHT = Dimensions.get("window").height
+const SLIDE_HEIGHT = 500
 
 export default function ManagingPosts() {
   const API_URL = "http://192.168.100.77:5015/api"
@@ -25,9 +32,19 @@ export default function ManagingPosts() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [menuVisible, setMenuVisible] = useState(false)
+  const [menuPosition, setMenuPosition] = useState({ bottom: 0, right: 0 })
+  const [selectedPost, setSelectedPost] = useState(null)
+  const [viewerVisible, setViewerVisible] = useState(false)
+  const [viewerUri, setViewerUri] = useState(null)
+  const menuButtonRefs = useRef({})
 
   const resolveMediaUrl = (path) => {
     if (!path) return null
+    if (typeof path === "object") {
+      path = path.url || path.path || path.content || path.file || path.src || null
+    }
+    if (typeof path !== "string") return null
     if (path.startsWith("http://") || path.startsWith("https://")) return path
     const baseUrl = API_URL.replace(/\/api$/, "")
     return `${baseUrl}/${path.replace(/\\/g, "/")}`
@@ -72,44 +89,154 @@ export default function ManagingPosts() {
     }, 350)
   }
 
-  const renderMedia = (item) => {
-    if (item.contentType?.startsWith("image")) {
-      return (
-        <Image
-          source={{ uri: resolveMediaUrl(item.content) }}
-          style={{ width: "100%", height: 220 }}
-          resizeMode="cover"
-        />
-      )
+  const handleIndexChanged = (index) => {
+    if (index >= posts.length - 2) {
+      handleLoadMore()
     }
-    if (item.contentType?.startsWith("video")) {
+  }
+
+  const getMediaItems = (item) => {
+    if (Array.isArray(item.content)) return item.content.filter(Boolean)
+    if (item.content) return [item.content]
+    return []
+  }
+
+  const isVideoItem = (m) => {
+    if (m && m.contentType) return m.contentType.startsWith("video")
+    if (typeof m === "string") return m.endsWith(".mp4") || m.endsWith(".mov")
+    return false
+  }
+
+  const openViewer = (uri) => {
+    setViewerUri(uri)
+    setViewerVisible(true)
+  }
+
+  const closeViewer = () => {
+    setViewerUri(null)
+    setViewerVisible(false)
+  }
+
+  const renderMediaSlide = (m, isVideo) => {
+    const uri = resolveMediaUrl(m)
+    if (isVideo) {
       return (
         <Video
-          source={{ uri: resolveMediaUrl(item.content) }}
-          style={{ width: "100%", height: 220 }}
+          source={{ uri }}
+          style={{ width: SCREEN_WIDTH - 40, height: 260 }}
           useNativeControls
           resizeMode="cover"
         />
       )
     }
     return (
-      <View className="items-center justify-center bg-white/[0.03] py-10">
-        <FileText size={24} color="#71717A" />
-        <Text className="mt-2 text-[13px] text-zinc-400 px-4 text-center">
-          {item.content}
-        </Text>
-      </View>
+      <Pressable onPress={() => openViewer(uri)}>
+        <Image
+          source={{ uri }}
+          style={{ width: SCREEN_WIDTH - 40, height: 260 }}
+          resizeMode="cover"
+        />
+      </Pressable>
     )
   }
 
-  const renderPost = ({ item }) => (
-    <View className="mb-4 overflow-hidden rounded-[24px] border border-white/[0.07] bg-[#121216]">
+  const renderMedia = (item) => {
+    const mediaItems = getMediaItems(item)
+
+    if (mediaItems.length === 0) {
+      return (
+        <View className="items-center justify-center bg-white/[0.03] py-12">
+          <View className="mb-2 h-12 w-12 items-center justify-center rounded-full bg-white/[0.05]">
+            <FileText size={20} color="#71717A" />
+          </View>
+          <Text className="text-[13px] text-zinc-500 px-4 text-center">No media attached</Text>
+        </View>
+      )
+    }
+
+    if (mediaItems.length === 1) {
+      return renderMediaSlide(mediaItems[0], isVideoItem(mediaItems[0]))
+    }
+
+    return (
+      <FlatList
+        data={mediaItems}
+        keyExtractor={(_, idx) => `${item._id}-${idx}`}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        renderItem={({ item: m }) => renderMediaSlide(m, isVideoItem(m))}
+      />
+    )
+  }
+
+  const openMenu = (post) => {
+    const ref = menuButtonRefs.current[post._id]
+    if (ref) {
+      ref.measureInWindow((x, y, width, height) => {
+        setMenuPosition({
+          bottom: Math.max(SCREEN_HEIGHT - y + 8, 60),
+          right: Math.max(SCREEN_WIDTH - (x + width), 12),
+        })
+        setSelectedPost(post)
+        setMenuVisible(true)
+      })
+    } else {
+      setSelectedPost(post)
+      setMenuVisible(true)
+    }
+  }
+
+  const closeMenu = () => {
+    setSelectedPost(null)
+    setMenuVisible(false)
+  }
+
+  const handleDelete = async (postId) => {
+    Alert.alert("Delete post", "Are you sure you want to delete this post?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const res = await fetch(`${API_URL}/blog/${postId}`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            const data = await res.json()
+            if (data.success) {
+              setAllPosts((prev) => prev.filter((p) => p._id !== postId))
+            }
+          } catch (err) {
+            console.log(err)
+          } finally {
+            closeMenu()
+          }
+        },
+      },
+    ])
+  }
+
+  const renderPost = (item) => (
+    <View className="overflow-hidden rounded-[24px] border border-white/[0.07] bg-[#121216] shadow-lg">
       {renderMedia(item)}
       <View className="p-4">
-        <Text className="text-[15px] font-semibold text-white">{item.title}</Text>
-        {item.desc ? (
-          <Text className="mt-1 text-[13px] leading-5 text-zinc-400">{item.desc}</Text>
-        ) : null}
+        <View className="flex-row items-start justify-between">
+          <View style={{ flex: 1, paddingRight: 8 }}>
+            <Text className="text-[15px] font-semibold text-white">{item.title || "Untitled"}</Text>
+            {item.desc ? (
+              <Text className="mt-1 text-[13px] leading-5 text-zinc-400">{item.desc}</Text>
+            ) : null}
+          </View>
+          <Pressable
+            ref={(r) => (menuButtonRefs.current[item._id] = r)}
+            onPress={() => openMenu(item)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-white/[0.04] active:bg-white/[0.09]"
+          >
+            <MoreVertical size={18} color="#A1A1AA" />
+          </Pressable>
+        </View>
       </View>
     </View>
   )
@@ -126,15 +253,29 @@ export default function ManagingPosts() {
 
   return (
     <View className="px-5 pb-8">
-      <Pressable
-        onPress={() => navigation.navigate("CreatePostScreen")}
-        className={`flex-row items-center justify-center rounded-full border border-purple-500/30 bg-purple-500/10 py-3.5 active:opacity-70 ${
-          allPosts.length > 0 ? "mb-5" : ""
-        }`}
-      >
-        <PlusCircle size={16} color="#A78BFA" />
-        <Text className="ml-2 text-[14px] font-semibold text-purple-300">Create a Post</Text>
-      </Pressable>
+      <View className="flex-row items-center mb-5">
+        <Pressable
+          onPress={() => navigation.navigate("CreatePostScreen")}
+          className="flex-1 flex-row items-center justify-center rounded-full border border-purple-500/30 bg-purple-500/10 py-3.5 active:opacity-70"
+        >
+          <PlusCircle size={16} color="#A78BFA" />
+          <Text className="ml-2 text-[14px] font-semibold text-purple-300">Create a Post</Text>
+        </Pressable>
+
+        {allPosts.length > 0 ? (
+          <Pressable
+            onPress={() => fetchPosts(true)}
+            disabled={refreshing}
+            className="ml-3 h-11 w-11 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] active:bg-white/[0.07]"
+          >
+            {refreshing ? (
+              <ActivityIndicator color="#A78BFA" size="small" />
+            ) : (
+              <RefreshCw size={16} color="#A78BFA" />
+            )}
+          </Pressable>
+        ) : null}
+      </View>
 
       {allPosts.length === 0 ? (
         <View className="items-center justify-center rounded-[28px] border border-dashed border-white/[0.12] bg-white/[0.02] py-14">
@@ -145,29 +286,135 @@ export default function ManagingPosts() {
           <Text className="mt-1 text-[13px] text-zinc-600">Share your first post with the world</Text>
         </View>
       ) : (
-        <FlatList
-          data={posts}
-          keyExtractor={(item) => item._id}
-          renderItem={renderPost}
-          scrollEnabled={false}
-          onEndReachedThreshold={0.5}
-          onEndReached={handleLoadMore}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => fetchPosts(true)}
-              tintColor="#8B5CF6"
-            />
-          }
-          ListFooterComponent={
-            loadingMore ? (
-              <View className="py-4 items-center">
-                <ActivityIndicator color="#8B5CF6" size="small" />
-              </View>
-            ) : null
-          }
-        />
+        <Swiper
+          style={{ height: SLIDE_HEIGHT }}
+          loop={false}
+          autoplay={false}
+          showsButtons={false}
+          onIndexChanged={handleIndexChanged}
+          dotStyle={{
+            backgroundColor: "rgba(255,255,255,0.25)",
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            marginHorizontal: 3,
+          }}
+          activeDotStyle={{
+            backgroundColor: "#A78BFA",
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            marginHorizontal: 3,
+          }}
+          paginationStyle={{ bottom: 4 }}
+        >
+          {posts.map((item) => (
+            <View key={item._id} className="px-1">
+              {renderPost(item)}
+            </View>
+          ))}
+        </Swiper>
       )}
+
+      <Modal visible={menuVisible} transparent animationType="fade">
+        <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={closeMenu}>
+          <View
+            style={{
+              position: "absolute",
+              bottom: menuPosition.bottom,
+              right: menuPosition.right,
+              width: 190,
+              borderRadius: 18,
+              paddingVertical: 6,
+              backgroundColor: "#18181D",
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.08)",
+              shadowColor: "#000",
+              shadowOpacity: 0.4,
+              shadowRadius: 12,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 8,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                closeMenu()
+                navigation.navigate("CreatePostScreen", { post: selectedPost, edit: true })
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+              }}
+            >
+              <Pencil size={16} color="#A78BFA" />
+              <Text style={{ marginLeft: 10, color: "#EDE9FE", fontWeight: "600", fontSize: 14 }}>
+                Edit
+              </Text>
+            </TouchableOpacity>
+            <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)" }} />
+            <TouchableOpacity
+              onPress={() => selectedPost && handleDelete(selectedPost._id)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+              }}
+            >
+              <Trash2 size={16} color="#FB7185" />
+              <Text style={{ marginLeft: 10, color: "#FB7185", fontWeight: "600", fontSize: 14 }}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+            <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)" }} />
+            <TouchableOpacity
+              onPress={closeMenu}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+              }}
+            >
+              <X size={16} color="#9CA3AF" />
+              <Text style={{ marginLeft: 10, color: "#9CA3AF", fontSize: 14 }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={viewerVisible} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.96)" }}>
+          <Pressable
+            onPress={closeViewer}
+            style={{
+              position: "absolute",
+              top: 50,
+              right: 20,
+              zIndex: 10,
+              height: 40,
+              width: 40,
+              borderRadius: 20,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(255,255,255,0.1)",
+            }}
+          >
+            <X size={20} color="#F4F4F5" />
+          </Pressable>
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+            {viewerUri ? (
+              <Image
+                source={{ uri: viewerUri }}
+                style={{ width: SCREEN_WIDTH, height: "70%" }}
+                resizeMode="contain"
+              />
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
