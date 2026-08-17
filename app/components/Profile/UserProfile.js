@@ -92,9 +92,9 @@ export default function UserProfile() {
 
   return (
     <ScrollView
-      className="flex-1"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 140 }}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: 140 }}
+      scrollEnabled={!edit}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
