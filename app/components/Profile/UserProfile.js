@@ -7,6 +7,7 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
+  Linking,
 } from "react-native";
 import ManagingPosts from "./ManagingPosts";
 import { LinearGradient } from "expo-linear-gradient";
@@ -35,6 +36,18 @@ export default function UserProfile() {
     if (path.startsWith("http://") || path.startsWith("https://")) return path;
     const baseUrl = API_URL.replace(/\/api$/, "");
     return `${baseUrl}/${path.replace(/\\/g, "/")}`;
+  };
+
+  const getLinksArray = (links) => {
+    if (!links) return [];
+    if (Array.isArray(links)) return links.filter(Boolean);
+    if (typeof links === "string") return links.split(",").map((l) => l.trim()).filter(Boolean);
+    return [];
+  };
+
+  const openLink = (link) => {
+    const url = link.startsWith("http") ? link : `https://${link}`;
+    Linking.openURL(url);
   };
 
   const fetchProfile = async (isRefresh = false) => {
@@ -75,6 +88,7 @@ export default function UserProfile() {
   const postsCount = profile?.postsCount ?? 0;
   const likesCount = profile?.likesCount ?? 0;
   const avatarUrl = resolveAvatarUrl(profile?.avator ?? profile?.avatar);
+  const linksArray = getLinksArray(profile?.links);
 
   return (
     <ScrollView
@@ -191,19 +205,25 @@ export default function UserProfile() {
               </Text>
             </View>
 
-            <View className="rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
+             <View className="rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
               <Text className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                 Links
               </Text>
-              {profile?.links ? (
-                <Pressable className="flex-row items-center active:opacity-70">
-                  <View className="h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6]/15">
-                    <Link2 size={13} color="#A78BFA" />
-                  </View>
-                  <Text className="ml-2.5 text-[14px] text-zinc-300">
-                    {profile.links}
-                  </Text>
-                </Pressable>
+              {linksArray.length > 0 ? (
+                linksArray.map((link, index) => (
+                  <Pressable
+                    key={index}
+                    className="flex-row items-center active:opacity-70 mb-2 last:mb-0"
+                    onPress={() => openLink(link)}
+                  >
+                    <View className="h-7 w-7 items-center justify-center rounded-full bg-[#8B5CF6]/15">
+                      <Link2 size={13} color="#A78BFA" />
+                    </View>
+                    <Text className="ml-2.5 text-[14px] text-zinc-300">
+                      {link}
+                    </Text>
+                  </Pressable>
+                ))
               ) : (
                 <Text className="text-[14px] text-zinc-600">
                   No links added yet.
@@ -215,7 +235,7 @@ export default function UserProfile() {
         <View className="w-full h-[1px] mt-3 bg-white/50"></View>
       </View>
 
-      <EditProfile edit={edit} setEdit={setEdit}/>
+      <EditProfile edit={edit} setEdit={setEdit} setProfile={setProfile}/>
       <ManagingPosts />
     </ScrollView>
   );
