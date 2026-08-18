@@ -70,7 +70,6 @@ export default function UserPosts () {
         },
       })
 
-      console.log('fetchPosts:', profileId, 'status', res.status)
       const safeParseJSON = async (r) => {
         const ct = r.headers.get('content-type') || ''
         if (ct.includes('application/json')) return await r.json()
