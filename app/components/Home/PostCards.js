@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Video } from "expo-av";
+import { useNavigation } from "@react-navigation/native";
 import { X, MessageCircle, Heart, User } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 
@@ -47,6 +48,7 @@ export default function PostCards() {
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(null);
   const { token } = useAuth();
+  const navigation = useNavigation();
   const [showCommentsFor, setShowCommentsFor] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -83,6 +85,11 @@ export default function PostCards() {
   const openComments = (id) => {
     setCommentText("");
     setShowCommentsFor(id);
+  };
+
+  const goToProfile = (profileId) => {
+    if (!profileId) return;
+    navigation.navigate("UserProfileScreen", { profileId });
   };
 
   if (loading) {
@@ -126,12 +133,17 @@ export default function PostCards() {
             );
             const authorName =
               item.profileId?.username || item.email || "Unknown user";
+            const authorProfileId = item.profileId?._id || item.profileId;
             return (
               <View
                 key={item._id || item.id}
                 className="mx-4 mb-5 bg-[#111113] rounded-2xl overflow-hidden border border-white/10"
               >
-                <View className="flex-row items-center justify-start px-4 pt-4 mb-3">
+                <TouchableOpacity
+                  onPress={() => goToProfile(authorProfileId)}
+                  activeOpacity={0.8}
+                  className="flex-row items-center justify-start px-4 pt-4 mb-3"
+                >
                   <View className="h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#1B1B1F] border border-white/10">
                     {avatarUrl ? (
                       <Image
@@ -146,7 +158,7 @@ export default function PostCards() {
                   <Text className="ml-2.5 text-white text-[14px] font-semibold">
                     {authorName}
                   </Text>
-                </View>
+                </TouchableOpacity>
 
                 {/* Image */}
                 {mediaUrl ? (
