@@ -45,7 +45,7 @@ export default function BottomBar() {
       key: "Search",
       name: "Search",
       icon: Search,
-      onPress: () => navigation.navigate("HomeScreen"),
+      onPress: () => navigation.navigate("SearchScreen"),
       active: false,
     },
     {
