@@ -12,7 +12,7 @@ import {
 import { Video } from "expo-av"
 import Swiper from "react-native-swiper"
 import { useNavigation } from "@react-navigation/native"
-import { PlusCircle, ImageOff, FileText, MoreVertical, X, RefreshCw } from "lucide-react-native"
+import { PlusCircle, ImageOff, FileText, MoreVertical, X, RefreshCw, Heart, MessageCircle, Calendar } from "lucide-react-native"
 import { useAuth } from "../../../contexts/AuthContext"
 import PostOptionsMenu from "./PostOptionsMenu"
 import DeleteConfirmModal from "./Deleteconfirmmodal"
@@ -51,6 +51,24 @@ export default function ManagingPosts({ onPostsUpdated }) {
     if (path.startsWith("http://") || path.startsWith("https://")) return path
     const baseUrl = API_URL.replace(/\/api$/, "")
     return `${baseUrl}/${path.replace(/\\/g, "/")}`
+  }
+
+  const formatPostDate = (dateStr) => {
+    if (!dateStr) return ""
+    const d = new Date(dateStr)
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+  }
+
+  const getLikesCount = (item) => {
+    if (typeof item.likes === "number") return item.likes
+    if (Array.isArray(item.likes)) return item.likes.length
+    return 0
+  }
+
+  const getCommentsCount = (item) => {
+    if (Array.isArray(item.comments)) return item.comments.length
+    if (typeof item.comments === "number") return item.comments
+    return 0
   }
 
   const fetchPosts = async (isRefresh = false) => {
@@ -258,6 +276,23 @@ export default function ManagingPosts({ onPostsUpdated }) {
           >
             <MoreVertical size={18} color="#A1A1AA" />
           </Pressable>
+        </View>
+
+        <View className="mt-4 flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="flex-row items-center">
+              <Heart size={15} color="#FB7185" />
+              <Text className="ml-1.5 text-[13px] font-medium text-zinc-300">{getLikesCount(item)}</Text>
+            </View>
+            <View className="ml-[20px] flex-row items-center">
+              <MessageCircle size={15} color="#A78BFA"/>
+              <Text className="ml-1.5 text-[13px] font-medium text-zinc-300">{getCommentsCount(item)}</Text>
+            </View>
+          </View>
+          <View className="flex-row items-center">
+            <Calendar size={13} color="#71717A" />
+            <Text className="ml-1.5 text-[12px] text-zinc-500">{formatPostDate(item.createdAt)}</Text>
+          </View>
         </View>
       </View>
     </View>
