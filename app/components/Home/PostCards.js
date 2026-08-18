@@ -89,7 +89,7 @@ export default function PostCards() {
     return (
       <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" color="#fff" />
-        <Text className="text-white/50 mt-3">Loading posts...</Text>
+        <Text className="text-white mt-3">Loading posts...</Text>
       </View>
     );
   }

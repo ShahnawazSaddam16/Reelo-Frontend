@@ -22,6 +22,7 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import BottomBar from "../../components/App-Shell/BottomBar";
+import UserPosts from "../../components/Blogs/UserPosts";
 
 const API_URL = "http://192.168.100.77:5015/api";
 
@@ -228,6 +229,8 @@ export default function UserProfileScreen() {
               </View>
             </View>
           </View>
+
+          <UserPosts/>
         </ScrollView>
       )}
 
