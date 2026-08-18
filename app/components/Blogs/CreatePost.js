@@ -14,15 +14,40 @@ import {
 import * as ImagePicker from "expo-image-picker"
 import { Video } from "expo-av"
 import { ImagePlus, X, Sparkles } from "lucide-react-native"
+import { useNavigation, useRoute } from "@react-navigation/native"
 import { useAuth } from "../../../contexts/AuthContext"
 
 export default function CreatePost() {
   const API_URL = "http://192.168.100.77:5015/api"
   const { token } = useAuth()
+  const navigation = useNavigation()
+  const route = useRoute()
 
-  const [title, setTitle] = useState("")
-  const [desc, setDesc] = useState("")
-  const [media, setMedia] = useState(null)
+  const editingPost = route.params?.post || null
+  const isEditMode = !!route.params?.edit && !!editingPost
+
+  const resolveMediaUrl = (path) => {
+    if (!path) return null
+    if (typeof path === "object") {
+      path = path.url || path.path || path.content || path.file || path.src || null
+    }
+    if (typeof path !== "string") return null
+    if (path.startsWith("http://") || path.startsWith("https://")) return path
+    const baseUrl = API_URL.replace(/\/api$/, "")
+    return `${baseUrl}/${path.replace(/\\/g, "/")}`
+  }
+
+  const [title, setTitle] = useState(editingPost?.title || "")
+  const [desc, setDesc] = useState(editingPost?.desc || "")
+  const [media, setMedia] = useState(
+    editingPost
+      ? {
+          uri: resolveMediaUrl(editingPost.content),
+          type: editingPost.contentType && editingPost.contentType.startsWith("video") ? "video" : "image",
+          existing: true,
+        }
+      : null
+  )
   const [loading, setLoading] = useState(false)
   const [focusedField, setFocusedField] = useState("")
   const [status, setStatus] = useState(null)
@@ -69,19 +94,34 @@ export default function CreatePost() {
       const formData = new FormData()
       formData.append("title", title)
       formData.append("desc", desc)
-      formData.append("content", {
-        uri: media.uri,
-        name: media.fileName || `upload-${Date.now()}.${media.type === "video" ? "mp4" : "jpg"}`,
-        type: media.type === "video" ? "video/mp4" : "image/jpeg",
-      })
 
-      const res = await fetch(`${API_URL}/blog/create-post`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      })
+      if (!media.existing) {
+        formData.append("content", {
+          uri: media.uri,
+          name: media.fileName || `upload-${Date.now()}.${media.type === "video" ? "mp4" : "jpg"}`,
+          type: media.type === "video" ? "video/mp4" : "image/jpeg",
+        })
+      }
+
+      let res
+
+      if (isEditMode) {
+        res = await fetch(`${API_URL}/blog/edit-post/${editingPost._id}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        })
+      } else {
+        res = await fetch(`${API_URL}/blog/create-post`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        })
+      }
 
       const contentType = res.headers.get("content-type") || ""
 
@@ -94,11 +134,18 @@ export default function CreatePost() {
       const data = await res.json()
 
       if (data.success) {
-        setStatus({ type: "success", message: data.message || "Post created successfully" })
-        setTitle("")
-        setDesc("")
-        setMedia(null)
-        setTimeout(() => setStatus(null), 2000)
+        setStatus({ type: "success", message: data.message || (isEditMode ? "Post updated successfully" : "Post created successfully") })
+        if (isEditMode) {
+          setTimeout(() => {
+            setStatus(null)
+            navigation.goBack()
+          }, 1200)
+        } else {
+          setTitle("")
+          setDesc("")
+          setMedia(null)
+          setTimeout(() => setStatus(null), 2000)
+        }
       } else {
         setStatus({ type: "error", message: data.message || "Something went wrong" })
         setTimeout(() => setStatus(null), 2500)
@@ -123,8 +170,8 @@ export default function CreatePost() {
         className="flex-1 px-5 pt-10"
       >
         <View className="mb-7">
-          <Text className="text-[26px] font-bold text-white">Create Post</Text>
-          <Text className="mt-0.5 text-[13px] text-zinc-500">Share something new</Text>
+          <Text className="text-[26px] font-bold text-white">{isEditMode ? "Edit Post" : "Create Post"}</Text>
+          <Text className="mt-0.5 text-[13px] text-zinc-500">{isEditMode ? "Update your post" : "Share something new"}</Text>
         </View>
 
         {status && (
@@ -227,7 +274,7 @@ export default function CreatePost() {
             ) : (
               <>
                 <Sparkles size={16} color="#ffffff" />
-                <Text className="text-white font-semibold text-base ml-2">Publish Post</Text>
+                <Text className="text-white font-semibold text-base ml-2">{isEditMode ? "Update Post" : "Publish Post"}</Text>
               </>
             )}
           </Pressable>
