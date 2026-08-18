@@ -1,6 +1,6 @@
 import React from "react";
 import { StatusBar, View } from "react-native";
-import UserProfile from "../../components/Profile/UserProfile";
+import MyProfile from "../../components/Profile/MyProfile";
 import BottomBar from "../../components/App-Shell/BottomBar";
 import ManagingPosts from "../../components/Profile/ManagingPosts";
 
@@ -8,7 +8,7 @@ export default function ProfileScreen() {
   return (
     <View className="flex-1 bg-[#0E0E10]">
       <StatusBar barStyle="light-content" />
-      <UserProfile />
+      <MyProfile />
       <BottomBar />
     </View>
   );

@@ -14,7 +14,7 @@ export default function CreatingProfileScreen() {
 
   const checkProfile = async () => {
     try {
-      const res = await fetch(`${API_URL}/profile/user-profile`, {
+      const res = await fetch(`${API_URL}/profile/my-profile`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

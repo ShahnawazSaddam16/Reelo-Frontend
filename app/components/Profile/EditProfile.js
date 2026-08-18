@@ -16,7 +16,7 @@ export default function EditProfile({ edit, setEdit, profile, setProfile }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`${API_URL}/profile/user-profile`, {
+        const res = await fetch(`${API_URL}/profile/my-profile`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

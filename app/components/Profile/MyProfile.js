@@ -22,13 +22,13 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import EditProfile from "./EditProfile";
 
-export default function UserProfile() {
+export default function MyProfile() {
   const API_URL = "http://192.168.100.77:5015/api";
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
-  const [edit, setEdit] = useState("");
+  const [edit, setEdit] = useState(false);
   const { token } = useAuth();
 
   const resolveAvatarUrl = (path) => {
@@ -48,13 +48,31 @@ export default function UserProfile() {
 
   const openLink = (link) => {
     const url = link.startsWith("http") ? link : `https://${link}`;
-    Linking.openURL(url);
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (supported) Linking.openURL(url).catch((e) => console.warn('Failed to open link', e));
+        else console.warn('Cannot open URL:', url);
+      })
+      .catch((e) => console.warn('Link check failed', e));
+  };
+
+  const safeParseJSON = async (res) => {
+    const ct = res.headers.get('content-type') || '';
+    if (ct.includes('application/json')) {
+      return await res.json();
+    }
+    try {
+      return await res.json();
+    } catch (e) {
+      const text = await res.text().catch(() => '');
+      return { success: false, message: text || 'Non-JSON response from server' };
+    }
   };
 
   const fetchProfile = async (isRefresh = false) => {
     isRefresh ? setRefreshing(true) : setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/profile/user-profile`, {
+      const res = await fetch(`${API_URL}/profile/my-profile`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -62,9 +80,11 @@ export default function UserProfile() {
         },
       });
 
-      const data = await res.json();
-      if (data.success) {
+      const data = await safeParseJSON(res);
+      if (data && data.success) {
         setProfile(data.profile || null);
+      } else {
+        console.warn('Unexpected response from profile/my-profile', data);
       }
     } catch (err) {
       console.error(err);
@@ -75,7 +95,7 @@ export default function UserProfile() {
 
   const fetchUserPosts = async () => {
     try {
-      const res = await fetch(`${API_URL}/blog/user-posts`, {
+      const res = await fetch(`${API_URL}/blog/my-posts`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -83,9 +103,13 @@ export default function UserProfile() {
         },
       });
 
-      const data = await res.json();
-      if (data.success) {
+      const data = await safeParseJSON(res);
+      if (data && data.success) {
         setUserPosts(data.userPosts || []);
+      } else if (data && data.userPosts) {
+        setUserPosts(data.userPosts || []);
+      } else {
+        console.warn('Unexpected response from blog/user-posts', data);
       }
     } catch (err) {
       console.error(err);

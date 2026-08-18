@@ -74,7 +74,7 @@ export default function ManagingPosts({ onPostsUpdated }) {
   const fetchPosts = async (isRefresh = false) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/blog/user-posts`, {
+      const res = await fetch(`${API_URL}/blog/my-posts`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
