@@ -80,6 +80,10 @@ export default function ManagingPosts() {
   useEffect(() => {
     if (!token) return
     fetchPosts()
+    const unsub = navigation.addListener("focus", () => {
+      fetchPosts()
+    })
+    return unsub
   }, [token])
 
   const handleLoadMore = () => {
@@ -224,7 +228,7 @@ export default function ManagingPosts() {
       })
       const data = await res.json()
       if (data.success) {
-        setAllPosts((prev) => prev.filter((p) => p._id !== deleteTarget._id))
+        await fetchPosts()
       }
     } catch (err) {
       console.log(err)
