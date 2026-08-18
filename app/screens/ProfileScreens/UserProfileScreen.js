@@ -36,6 +36,8 @@ export default function UserProfileScreen() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [postsCount, setPostsCount] = useState(0);
+  const [likesCount, setLikesCount] = useState(0);
 
   const resolveAvatarUrl = (path) => {
     if (!path) return null;
@@ -81,7 +83,32 @@ export default function UserProfileScreen() {
       }
     };
 
+    const fetchUserPosts = async () => {
+      try {
+        const res = await fetch(`${API_URL}/blog/user-posts/${profileId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          const posts = data.userPosts || [];
+          setPostsCount(posts.length);
+          setLikesCount(
+            posts.reduce((sum, post) => sum + (post?.likes?.length || post?.likesCount || 0), 0)
+          );
+        }
+      } catch (err) {
+        setPostsCount(0);
+        setLikesCount(0);
+      }
+    };
+
     fetchProfile();
+    fetchUserPosts();
   }, [profileId]);
 
   if (loading) {
@@ -169,27 +196,47 @@ export default function UserProfileScreen() {
                     </LinearGradient>
                   </View>
 
-                  <View className="flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-[21px] font-bold text-white">
-                        {profile?.username || "Unknown user"}
+                  <View className="flex-1 flex-row justify-around">
+                    <View className="items-center">
+                      <Text className="text-[19px] font-bold text-white">
+                        {postsCount}
                       </Text>
-                      <View className="ml-2">
-                        <ShieldCheck size={17} color="#8B5CF6" />
-                      </View>
-                    </View>
-                    <View className="mt-1.5 flex-row items-center">
-                      <Mail size={12} color="#71717A" />
-                      <Text className="ml-1.5 text-[13px] text-zinc-500">
-                        {profile?.email || "No email available"}
+                      <Text className="mt-1 text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                        Posts
                       </Text>
                     </View>
+                    <View className="h-8 w-px bg-white/10" />
+                    <View className="items-center">
+                      <Text className="text-[19px] font-bold text-white">
+                        {likesCount}
+                      </Text>
+                      <Text className="mt-1 text-[11px] uppercase tracking-[0.15em] text-zinc-500">
+                        Likes
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View className="mt-5">
+                  <View className="flex-row items-center">
+                    <Text className="text-[21px] font-bold text-white">
+                      {profile?.username || "Unknown user"}
+                    </Text>
+                    <View className="ml-2">
+                      <ShieldCheck size={17} color="#8B5CF6" />
+                    </View>
+                  </View>
+                  <View className="mt-1.5 flex-row items-center">
+                    <Mail size={12} color="#71717A" />
+                    <Text className="ml-1.5 text-[13px] text-zinc-500">
+                      {profile?.email || "No email available"}
+                    </Text>
                   </View>
                 </View>
               </LinearGradient>
 
               <View className="px-5 pb-5 mt-3">
-                <View className="mb-3 rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
+                <View className="rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
                   <View className="mb-2 flex-row items-center">
                     <Sparkles size={13} color="#8B5CF6" />
                     <Text className="ml-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
@@ -199,9 +246,9 @@ export default function UserProfileScreen() {
                   <Text className="text-[14px] leading-6 text-zinc-300">
                     {profile?.bio || "No bio added yet."}
                   </Text>
-                </View>
 
-                <View className="rounded-[22px] border border-white/[0.07] bg-white/[0.03] p-4">
+                  <View className="my-4 h-px bg-white/[0.07]" />
+
                   <Text className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">
                     Links
                   </Text>

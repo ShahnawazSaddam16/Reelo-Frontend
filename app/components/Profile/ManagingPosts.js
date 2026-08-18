@@ -15,7 +15,7 @@ import { useNavigation } from "@react-navigation/native"
 import { PlusCircle, ImageOff, FileText, MoreVertical, X, RefreshCw, Heart, MessageCircle, Calendar } from "lucide-react-native"
 import { useAuth } from "../../../contexts/AuthContext"
 import PostOptionsMenu from "./PostOptionsMenu"
-import DeleteConfirmModal from "./Deleteconfirmmodal"
+import DeleteConfirmModal from "./DeleteConfirmmodal"
 
 const PAGE_SIZE = 6
 const SCREEN_WIDTH = Dimensions.get("window").width

@@ -137,7 +137,7 @@ export default function PostCards() {
             return (
               <View
                 key={item._id || item.id}
-                className="mx-4 mb-5 bg-[#111113] rounded-2xl overflow-hidden border border-white/10"
+                className=" mb-5 bg-[#111113] rounded-2xl overflow-hidden border border-white/10"
               >
                 <TouchableOpacity
                   onPress={() => goToProfile(authorProfileId)}
@@ -202,7 +202,7 @@ export default function PostCards() {
                     <Text className="text-white/60 mt-2">{item.desc}</Text>
                   ) : null}
 
-                  <View className="flex-row items-center mt-4 justify-between">
+                  <View className="flex-row items-center mt-1 justify-between">
                     <Text className="text-white text-xs opacity-60">
                       {item.createdAt
                         ? new Date(item.createdAt).toLocaleString()
