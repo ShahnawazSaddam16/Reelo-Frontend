@@ -27,6 +27,7 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
   const [edit, setEdit] = useState("");
   const { token } = useAuth();
 
@@ -72,9 +73,35 @@ export default function UserProfile() {
     }
   };
 
+  const fetchUserPosts = async () => {
+    try {
+      const res = await fetch(`${API_URL}/blog/user-posts`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setUserPosts(data.userPosts || []);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const refreshAll = async () => {
+    setRefreshing(true);
+    await Promise.all([fetchProfile(true), fetchUserPosts()]);
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     if (!token) return;
     fetchProfile();
+    fetchUserPosts();
   }, [token]);
 
   if (loading) {
@@ -85,7 +112,7 @@ export default function UserProfile() {
     );
   }
 
-  const postsCount = profile?.postsCount ?? 0;
+  const postsCount = userPosts.length;
   const likesCount = profile?.likesCount ?? 0;
   const avatarUrl = resolveAvatarUrl(profile?.avator ?? profile?.avatar);
   const linksArray = getLinksArray(profile?.links);
@@ -98,7 +125,7 @@ export default function UserProfile() {
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
-          onRefresh={() => fetchProfile(true)}
+          onRefresh={refreshAll}
           tintColor="#8B5CF6"
         />
       }
@@ -236,7 +263,7 @@ export default function UserProfile() {
       </View>
 
       <EditProfile edit={edit} setEdit={setEdit} setProfile={setProfile}/>
-      <ManagingPosts />
+      <ManagingPosts onPostsUpdated={setUserPosts} />
     </ScrollView>
   );
 }

@@ -22,7 +22,7 @@ const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 const SLIDE_HEIGHT = 420
 
-export default function ManagingPosts() {
+export default function ManagingPosts({ onPostsUpdated }) {
   const API_URL = "http://192.168.100.77:5015/api"
   const navigation = useNavigation()
   const { token } = useAuth()
@@ -69,6 +69,7 @@ export default function ManagingPosts() {
       if (data.success) {
         setAllPosts(data.userPosts || [])
         setVisibleCount(PAGE_SIZE)
+        if (typeof onPostsUpdated === "function") onPostsUpdated(data.userPosts || [])
       }
     } catch (err) {
       console.log(err)
