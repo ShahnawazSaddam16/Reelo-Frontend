@@ -20,7 +20,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" />
       <View className="flex-1 items-center justify-center px-6">
         <Text className="text-2xl font-bold text-white">Home</Text>
-        <Text className="mt-3 text-sm text-zinc-400" onPress={handleLogout}>
+        <Text className="mt-3 text-sm text-zinc-400">
           Your feed is ready.
         </Text>
       </View>
