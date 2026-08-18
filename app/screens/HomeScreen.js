@@ -11,7 +11,7 @@ export default function HomeScreen() {
     <View className="flex-1 bg-[#0E0E10]">
       <StatusBar barStyle="light-content" />
       <Stories/>
-      <View className="flex justify-center items-center">
+      <View className="flex-1">
         <PostCards />
       </View>
       <BottomBar />

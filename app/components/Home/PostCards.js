@@ -10,6 +10,8 @@ import {
   TextInput,
   Dimensions,
 } from 'react-native';
+import { Video } from 'expo-av';
+import { X, MessageCircle, Heart } from 'lucide-react-native';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const API_URL = 'http://192.168.100.77:5015/api';
@@ -28,6 +30,13 @@ function resolveMediaUrl(path) {
   return `${baseUrl}/${String(p).replace(/\\/g, '/')}`
 }
 
+function isVideoItem(m) {
+  if (!m) return false
+  if (m.contentType) return String(m.contentType).startsWith('video')
+  if (typeof m === 'string') return m.endsWith('.mp4') || m.endsWith('.mov') || m.endsWith('.webm')
+  return false
+}
+
 export default function PostCards() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
@@ -35,6 +44,8 @@ export default function PostCards() {
   const {token} = useAuth();
   const [showCommentsFor, setShowCommentsFor] = useState(null);
   const [commentText, setCommentText] = useState('');
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerUri, setViewerUri] = useState(null);
 
   useEffect(() => {
     fetchAllPosts();
@@ -93,23 +104,36 @@ export default function PostCards() {
     <>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 10, paddingBottom: 30 }}
+        contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
       >
         {posts.length > 0 ? (
           posts.map((item) => {
-            const imageUrl = resolveMediaUrl(item.content || item);
+            const mediaItem = Array.isArray(item.content) ? item.content[0] : (item.content ?? item);
+            const mediaUrl = resolveMediaUrl(mediaItem || item);
+            const mediaIsVideo = isVideoItem(mediaItem || item);
             return (
               <View
                 key={item._id || item.id}
                 className="mx-4 mb-5 bg-[#111113] rounded-2xl overflow-hidden border border-white/10"
               >
                 {/* Image */}
-                    {imageUrl ? (
-                      <Image
-                        source={{ uri: imageUrl }}
-                        style={{ width: SCREEN_WIDTH - 32, height: 260 }}
-                        resizeMode="cover"
-                      />
+                    {mediaUrl ? (
+                      mediaIsVideo ? (
+                        <Video
+                          source={{ uri: mediaUrl }}
+                          style={{ width: SCREEN_WIDTH, height: 260 }}
+                          useNativeControls
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <TouchableOpacity onPress={() => { setViewerUri(mediaUrl); setViewerVisible(true); }} activeOpacity={0.9}>
+                          <Image
+                            source={{ uri: mediaUrl }}
+                            style={{ width: SCREEN_WIDTH, height: 260 }}
+                            resizeMode="cover"
+                          />
+                        </TouchableOpacity>
+                      )
                     ) : (
                       <View className="w-full h-60 bg-white/5 items-center justify-center">
                         <Text className="text-white/40">No Image</Text>
@@ -127,21 +151,21 @@ export default function PostCards() {
                   ) : null}
 
                   <View className="flex-row items-center mt-4 justify-between">
-                    <View className="flex-row items-center">
-                      <View className="bg-white/5 rounded-full px-4 py-2">
-                        <Text className="text-white/70">♥ {item.likes || 0} likes</Text>
-                      </View>
-
-                      <TouchableOpacity onPress={() => openComments(item._id)} className="ml-3">
-                        <View className="bg-white/5 rounded-full px-4 py-2">
-                          <Text className="text-white">Comments</Text>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-
                     <Text className="text-white text-xs opacity-60">
                       {item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}
                     </Text>
+
+                    <View className="flex-row items-center">
+                      <TouchableOpacity className="flex-row items-center mr-4">
+                        <Heart size={16} color="#FB7185" />
+                        <Text className="ml-2 text-white">{item.likes || 0}</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity onPress={() => openComments(item._id)} className="flex-row items-center">
+                        <MessageCircle size={16} color="#A78BFA" />
+                        <Text className="ml-2 text-white">{(item.comments && item.comments.length) || 0}</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -155,9 +179,15 @@ export default function PostCards() {
       </ScrollView>
 
       <Modal visible={!!showCommentsFor} transparent animationType="fade" onRequestClose={() => setShowCommentsFor(null)}>
-        <View className="flex-1 justify-end bg-black/60">
-          <View className="bg-[#0E0E10] p-4 rounded-t-2xl">
-            <Text className="text-white text-lg mb-2">Add comment</Text>
+        <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: SCREEN_WIDTH - 48 }} className="bg-[#0E0E10] p-4 rounded-2xl">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-white text-lg">Add comment</Text>
+              <TouchableOpacity onPress={() => setShowCommentsFor(null)}>
+                <X size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
             <TextInput
               value={commentText}
               onChangeText={setCommentText}
@@ -166,10 +196,7 @@ export default function PostCards() {
               className="bg-white/5 rounded p-3 text-white mb-3"
             />
 
-            <View className="flex-row justify-between">
-              <TouchableOpacity onPress={() => setShowCommentsFor(null)} className="px-4 py-2">
-                <Text className="text-white">Close</Text>
-              </TouchableOpacity>
+            <View className="flex-row justify-end">
               <TouchableOpacity
                 onPress={() => {
                   setCommentText('');
@@ -181,6 +208,17 @@ export default function PostCards() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      <Modal visible={viewerVisible} transparent animationType="fade" onRequestClose={() => { setViewerVisible(false); setViewerUri(null); }}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.98)', alignItems: 'center', justifyContent: 'center' }}>
+          <TouchableOpacity onPress={() => { setViewerVisible(false); setViewerUri(null); }} style={{ position: 'absolute', top: 48, right: 20, zIndex: 10, padding: 8 }}>
+            <X size={24} color="#fff" />
+          </TouchableOpacity>
+          {viewerUri ? (
+            <Image source={{ uri: viewerUri }} style={{ width: SCREEN_WIDTH, height: '80%' }} resizeMode="contain" />
+          ) : null}
         </View>
       </Modal>
     </>
