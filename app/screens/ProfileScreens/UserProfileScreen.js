@@ -78,8 +78,6 @@ export default function UserProfileScreen() {
         }
       } catch (err) {
         setError(true);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -98,7 +96,7 @@ export default function UserProfileScreen() {
           const posts = data.userPosts || [];
           setPostsCount(posts.length);
           setLikesCount(
-            posts.reduce((sum, post) => sum + (post?.likes?.length || post?.likesCount || 0), 0)
+            posts.reduce((sum, post) => sum + (post.likes || 0), 0)
           );
         }
       } catch (err) {
@@ -107,8 +105,13 @@ export default function UserProfileScreen() {
       }
     };
 
-    fetchProfile();
-    fetchUserPosts();
+    const fetchAll = async () => {
+      setLoading(true);
+      await Promise.all([fetchProfile(), fetchUserPosts()]);
+      setLoading(false);
+    };
+
+    fetchAll();
   }, [profileId]);
 
   if (loading) {
