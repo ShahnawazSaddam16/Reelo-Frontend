@@ -77,10 +77,11 @@ export default function PostCards() {
   };
 
   useEffect(() => {
-    fetchAllPosts();
-  }, []);
+    if (token) fetchAllPosts();
+  }, [token]);
 
   const fetchAllPosts = async () => {
+    if (!token) return;
     try {
       setLoading(true);
       setError(null);

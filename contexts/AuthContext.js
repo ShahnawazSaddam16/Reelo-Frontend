@@ -28,7 +28,19 @@ export function AuthProvider({ children }) {
           Authorization: `Bearer ${storedToken}`,
         },
       });
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data;
+      if (contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch (e) {
+          const text = await res.text().catch(() => '');
+          data = { success: false, message: text || 'Non-JSON response from server' };
+        }
+      } else {
+        const text = await res.text().catch(() => '');
+        data = { success: false, message: text || 'Non-JSON response from server' };
+      }
 
       if (!res.ok || !data.success) {
         await SecureStore.deleteItemAsync("token");
