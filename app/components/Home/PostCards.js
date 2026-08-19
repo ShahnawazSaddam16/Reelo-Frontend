@@ -6,14 +6,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Modal,
-  TextInput,
   Dimensions,
 } from "react-native";
 import { Video } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
-import { X, MessageCircle, Heart, User } from "lucide-react-native";
+import { Heart, MessageCircle, User } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
+import PostCommentsModal from "./PostCommentsModal";
 
 const API_URL = "http://192.168.100.77:5015/api";
 
@@ -47,12 +46,35 @@ export default function PostCards() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState(null);
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const navigation = useNavigation();
+
+  // Comments modal state
   const [showCommentsFor, setShowCommentsFor] = useState(null);
-  const [commentText, setCommentText] = useState("");
+
+  // Per-post like state: { [postId]: { liked: boolean, likes: number } }
+  const [likesState, setLikesState] = useState({});
+  // Per-post comment count: { [postId]: number }
+  const [commentCounts, setCommentCounts] = useState({});
+
   const [viewerVisible, setViewerVisible] = useState(false);
   const [viewerUri, setViewerUri] = useState(null);
+
+  const currentUserId = user?._id || user?.id || null;
+
+  const parseResponse = async (res) => {
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      try {
+        return await res.json();
+      } catch (e) {
+        const text = await res.text();
+        return { message: "Non-JSON response from server", bodyText: text };
+      }
+    }
+    const text = await res.text();
+    return { message: "Non-JSON response from server", bodyText: text };
+  };
 
   useEffect(() => {
     fetchAllPosts();
@@ -69,10 +91,27 @@ export default function PostCards() {
           Authorization: `Bearer ${token}`,
         },
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.message || "Failed to load posts");
+      const json = await parseResponse(res);
+      if (!res.ok) throw new Error(json?.message || json?.bodyText || "Failed to load posts");
       const list = json.allposts || json.posts || json.data || [];
-      setPosts(Array.isArray(list) ? list : []);
+      const safeList = Array.isArray(list) ? list : [];
+      setPosts(safeList);
+
+      const initialLikes = {};
+      const initialComments = {};
+      safeList.forEach((p) => {
+        const id = p._id || p.id;
+        if (!id) return;
+        const likedByMe = Array.isArray(p.likedBy)
+          ? p.likedBy.some((uid) => String(uid) === String(currentUserId))
+          : false;
+        initialLikes[id] = { liked: likedByMe, likes: p.likes || 0 };
+        initialComments[id] = Array.isArray(p.comments)
+          ? p.comments.length
+          : 0;
+      });
+      setLikesState(initialLikes);
+      setCommentCounts(initialComments);
     } catch (e) {
       console.error("PostCards fetch error", e);
       setError(e.message || "Failed to load posts");
@@ -82,9 +121,64 @@ export default function PostCards() {
     }
   };
 
+  const handleToggleLike = async (postId) => {
+    if (!postId) return;
+
+    // Optimistic update
+    setLikesState((prev) => {
+      const current = prev[postId] || { liked: false, likes: 0 };
+      const nextLiked = !current.liked;
+      return {
+        ...prev,
+        [postId]: {
+          liked: nextLiked,
+          likes: Math.max(0, current.likes + (nextLiked ? 1 : -1)),
+        },
+      };
+    });
+
+    try {
+      const res = await fetch(`${API_URL}/blog/${postId}/like`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const json = await parseResponse(res);
+      if (!res.ok) throw new Error(json?.message || json?.bodyText || "Failed to like post");
+
+      setLikesState((prev) => ({
+        ...prev,
+        [postId]: { liked: !!json.liked, likes: json.likes ?? 0 },
+      }));
+    } catch (e) {
+      console.error("Like error", e);
+      // Revert optimistic update on failure
+      setLikesState((prev) => {
+        const current = prev[postId] || { liked: false, likes: 0 };
+        const revertedLiked = !current.liked;
+        return {
+          ...prev,
+          [postId]: {
+            liked: revertedLiked,
+            likes: Math.max(0, current.likes + (revertedLiked ? 1 : -1)),
+          },
+        };
+      });
+    }
+  };
+
   const openComments = (id) => {
-    setCommentText("");
     setShowCommentsFor(id);
+  };
+
+  const closeComments = () => {
+    setShowCommentsFor(null);
+  };
+
+  const handleCommentCountChange = (postId, newCount) => {
+    setCommentCounts((prev) => ({ ...prev, [postId]: newCount }));
   };
 
   const goToProfile = (profileId) => {
@@ -123,6 +217,7 @@ export default function PostCards() {
       >
         {posts.length > 0 ? (
           posts.map((item) => {
+            const postId = item._id || item.id;
             const mediaItem = Array.isArray(item.content)
               ? item.content[0]
               : (item.content ?? item);
@@ -134,9 +229,18 @@ export default function PostCards() {
             const authorName =
               item.profileId?.username || item.email || "Unknown user";
             const authorProfileId = item.profileId?._id || item.profileId;
+
+            const likeInfo = likesState[postId] || {
+              liked: false,
+              likes: item.likes || 0,
+            };
+            const commentCount =
+              commentCounts[postId] ??
+              (Array.isArray(item.comments) ? item.comments.length : 0);
+
             return (
               <View
-                key={item._id || item.id}
+                key={postId}
                 className=" mb-5 bg-[#111113] rounded-2xl overflow-hidden border border-white/10"
               >
                 <TouchableOpacity
@@ -210,20 +314,29 @@ export default function PostCards() {
                     </Text>
 
                     <View className="flex-row items-center">
-                      <TouchableOpacity className="flex-row items-center mr-4">
-                        <Heart size={16} color="#FB7185" />
+                      <TouchableOpacity
+                        onPress={() => handleToggleLike(postId)}
+                        className="flex-row items-center mr-4"
+                        activeOpacity={0.7}
+                      >
+                        <Heart
+                          size={16}
+                          color="#FB7185"
+                          fill={likeInfo.liked ? "#FB7185" : "transparent"}
+                        />
                         <Text className="ml-2 text-white">
-                          {item.likes || 0}
+                          {likeInfo.likes}
                         </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        onPress={() => openComments(item._id)}
+                        onPress={() => openComments(postId)}
                         className="flex-row items-center"
+                        activeOpacity={0.7}
                       >
                         <MessageCircle size={16} color="#A78BFA" />
                         <Text className="ml-2 text-white">
-                          {(item.comments && item.comments.length) || 0}
+                          {commentCount}
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -239,69 +352,30 @@ export default function PostCards() {
         )}
       </ScrollView>
 
-      <Modal
+      {/* Comments modal - separate component, own UI */}
+      <PostCommentsModal
         visible={!!showCommentsFor}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowCommentsFor(null)}
-      >
+        postId={showCommentsFor}
+        apiUrl={API_URL}
+        token={token}
+        currentUserId={currentUserId}
+        onClose={closeComments}
+        onCommentCountChange={handleCommentCountChange}
+      />
+
+      {/* Image viewer modal (unchanged) */}
+      {viewerVisible ? (
         <View
           style={{
-            flex: 1,
-            backgroundColor: "#000",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <View
-            style={{ width: SCREEN_WIDTH - 48 }}
-            className="bg-[#0E0E10] p-4 rounded-2xl"
-          >
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-white text-lg">Add comment</Text>
-              <TouchableOpacity onPress={() => setShowCommentsFor(null)}>
-                <X size={20} color="#fff" />
-              </TouchableOpacity>
-            </View>
-
-            <TextInput
-              value={commentText}
-              onChangeText={setCommentText}
-              placeholder="Write a comment..."
-              placeholderTextColor="rgba(255,255,255,0.4)"
-              className="bg-white/5 rounded p-3 text-white mb-3"
-            />
-
-            <View className="flex-row justify-end">
-              <TouchableOpacity
-                onPress={() => {
-                  setCommentText("");
-                  setShowCommentsFor(null);
-                }}
-                className="px-4 py-2 bg-blue-600 rounded"
-              >
-                <Text className="text-white">Post</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={viewerVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => {
-          setViewerVisible(false);
-          setViewerUri(null);
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             backgroundColor: "rgba(0,0,0,0.98)",
             alignItems: "center",
             justifyContent: "center",
+            zIndex: 50,
           }}
         >
           <TouchableOpacity
@@ -317,7 +391,7 @@ export default function PostCards() {
               padding: 8,
             }}
           >
-            <X size={24} color="#fff" />
+            <Text style={{ color: "#fff", fontSize: 20 }}>✕</Text>
           </TouchableOpacity>
           {viewerUri ? (
             <Image
@@ -327,7 +401,7 @@ export default function PostCards() {
             />
           ) : null}
         </View>
-      </Modal>
+      ) : null}
     </>
   );
 }
