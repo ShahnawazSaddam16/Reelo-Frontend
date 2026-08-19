@@ -3,6 +3,7 @@ import {
   Modal,
   View,
   Text,
+  Image,
   TextInput,
   TouchableOpacity,
   FlatList,
@@ -12,7 +13,6 @@ import {
   Dimensions,
 } from "react-native";
 import { X, Send, Trash2, User } from "lucide-react-native";
-import { useAuth } from "../../../contexts/AuthContext";
 
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 
@@ -35,6 +35,22 @@ function getInitial(name) {
   return String(name).trim().charAt(0).toUpperCase();
 }
 
+function resolveAvatarUrl(path, apiUrl) {
+  if (!path) return null;
+  let p = path;
+  if (typeof p === "object") {
+    p = p.url || p.path || p.content || p.file || p.src || null;
+  }
+  if (!p) return null;
+  if (
+    typeof p === "string" &&
+    (p.startsWith("http://") || p.startsWith("https://"))
+  )
+    return p;
+  const baseUrl = apiUrl.replace(/\/api$/, "");
+  return `${baseUrl}/${String(p).replace(/\\/g, "/")}`;
+}
+
 export default function PostCommentsModal({
   visible,
   postId,
@@ -48,7 +64,6 @@ export default function PostCommentsModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [commentText, setCommentText] = useState("");
-  const {token} = useAuth();
   const [posting, setPosting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
 
@@ -156,7 +171,7 @@ export default function PostCommentsModal({
       if (!res.ok) throw new Error(json?.message || json?.bodyText || "Failed to delete comment");
 
       setComments((prev) => {
-        const updated = prev.filter((c) => c._id !== commentId);
+        const updated = prev.filter((c) => String(c._id || c.id) !== String(commentId));
         onCommentCountChangeRef.current?.(postId, updated.length);
         return updated;
       });
@@ -169,13 +184,41 @@ export default function PostCommentsModal({
   };
 
   const renderComment = ({ item }) => {
-    const isMine = currentUserId && String(item.userId) === String(currentUserId);
+    const commentId = item._id || item.id;
+    const commenterId =
+      item.userId?._id ||
+      item.userId ||
+      item.user?._id ||
+      item.user ||
+      item.profileId?._id ||
+      item.profileId ||
+      null;
+    const isMine = currentUserId && String(commenterId) === String(currentUserId);
+
+    const avatarSource =
+      item.avator ||
+      item.avatar ||
+      item.profileId?.avator ||
+      item.profileId?.avatar ||
+      item.user?.avator ||
+      item.user?.avatar ||
+      null;
+    const avatarUrl = resolveAvatarUrl(avatarSource, apiUrl);
+
     return (
       <View className="flex-row px-4 py-3 border-b border-white/5">
-        <View className="h-9 w-9 rounded-full bg-[#1B1B1F] border border-white/10 items-center justify-center mr-3">
-          <Text className="text-white/70 text-xs font-semibold">
-            {getInitial(item.username)}
-          </Text>
+        <View className="h-9 w-9 rounded-full bg-[#1B1B1F] border border-white/10 items-center justify-center mr-3 overflow-hidden">
+          {avatarUrl ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              resizeMode="cover"
+              style={{ width: 36, height: 36, borderRadius: 18 }}
+            />
+          ) : (
+            <Text className="text-white/70 text-xs font-semibold">
+              {getInitial(item.username)}
+            </Text>
+          )}
         </View>
         <View className="flex-1">
           <View className="flex-row items-center justify-between">
@@ -188,11 +231,11 @@ export default function PostCommentsModal({
               </Text>
               {isMine ? (
                 <TouchableOpacity
-                  onPress={() => handleDeleteComment(item._id)}
-                  disabled={deletingId === item._id}
+                  onPress={() => handleDeleteComment(commentId)}
+                  disabled={deletingId === commentId}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  {deletingId === item._id ? (
+                  {deletingId === commentId ? (
                     <ActivityIndicator size="small" color="#EF4444" />
                   ) : (
                     <Trash2 size={14} color="#EF4444" />
@@ -259,7 +302,7 @@ export default function PostCommentsModal({
             ) : (
               <FlatList
                 data={comments}
-                keyExtractor={(item, idx) => item._id || String(idx)}
+                keyExtractor={(item, idx) => item._id || item.id || String(idx)}
                 renderItem={renderComment}
                 style={{ maxHeight: SCREEN_HEIGHT * 0.5 }}
                 showsVerticalScrollIndicator={false}
