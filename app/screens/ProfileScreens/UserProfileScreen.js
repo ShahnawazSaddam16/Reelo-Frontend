@@ -281,7 +281,6 @@ export default function UserProfileScreen() {
         </ScrollView>
       )}
 
-      <BottomBar />
     </View>
   );
 }
