@@ -323,7 +323,7 @@ export default function PostCommentsModal({
                 onPress={handlePostComment}
                 disabled={!commentText.trim() || posting}
                 className={`h-10 w-10 rounded-full items-center justify-center ${
-                  commentText.trim() && !posting ? "bg-blue-600" : "bg-white/10"
+                  commentText.trim() && !posting ? "bg-purple-600" : "bg-white/10"
                 }`}
               >
                 {posting ? (
