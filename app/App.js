@@ -10,6 +10,7 @@ import SearchScreen from "./screens/SearchScreen";
 import UserProfileScreen from "./screens/ProfileScreens/UserProfileScreen";
 import { AuthProvider } from "../contexts/AuthContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import NotificationScreen from "./screens/NotificationScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -26,6 +27,7 @@ export default function App() {
             <Stack.Screen name="CreatePostScreen" component={CreatePostScreen} />
             <Stack.Screen name="SearchScreen" component={SearchScreen} />
             <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
+            <Stack.Screen name="NotificationScreen" component={NotificationScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </ErrorBoundary>

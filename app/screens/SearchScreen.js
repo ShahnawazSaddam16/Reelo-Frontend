@@ -202,7 +202,7 @@ export default function SearchScreen() {
   });
 
   return (
-    <View className="flex-1 bg-[#0B0B0D]">
+    <View className="flex-1 bg-[#0E0E10]">
       <StatusBar barStyle="light-content" />
 
       <View style={{ paddingTop: insets.top + 14 }} className="px-5 pb-2">

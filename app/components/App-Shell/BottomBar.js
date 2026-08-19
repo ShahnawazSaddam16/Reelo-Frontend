@@ -52,7 +52,7 @@ export default function BottomBar() {
       key: "Notifications",
       name: "Alerts",
       icon: Bell,
-      onPress: () => navigation.navigate("HomeScreen"),
+      onPress: () => navigation.navigate("NotificationScreen"),
       active: false,
     },
     {
