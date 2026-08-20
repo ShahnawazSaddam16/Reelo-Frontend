@@ -13,6 +13,7 @@ export default function BottomBar() {
   const insets = useSafeAreaInsets();
   const { token } = useAuth();
   const [avatar, setAvatar] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -31,6 +32,26 @@ export default function BottomBar() {
       } catch (err) {}
     };
     fetchAvatar();
+  }, [token]);
+
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const res = await fetch(`${API_URL}/blog/my-notifications`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && data.success && Array.isArray(data.notifications)) {
+          const count = data.notifications.filter((n) => !n.isRead).length;
+          setUnreadCount(count);
+        }
+      } catch (err) {}
+    };
+    fetchNotificationCount();
   }, [token]);
 
   const tabs = [
@@ -89,11 +110,20 @@ export default function BottomBar() {
                 }}
               />
             ) : (
-              <Icon
-                size={22}
-                color={active ? "#F8FAFC" : "#A1A1AA"}
-                strokeWidth={2.25}
-              />
+              <View>
+                <Icon
+                  size={22}
+                  color={active ? "#F8FAFC" : "#A1A1AA"}
+                  strokeWidth={2.25}
+                />
+                {key === "Notifications" && unreadCount > 0 && (
+                  <View className="absolute -right-2 -top-1 w-[16px] h-[16px] items-center justify-center rounded-full bg-red-500 px-1">
+                    <Text className="text-[9px] font-bold text-white">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
             )}
             <Text className={`mt-1 text-[9px] ${active ? "text-white" : "text-zinc-400"}`}>
               {name}
