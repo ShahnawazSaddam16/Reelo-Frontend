@@ -11,9 +11,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { io } from 'socket.io-client';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const API_URL = "http://192.168.100.77:5015/api";
+const SOCKET_URL = "http://192.168.100.77:5015";
 const LIMIT = 10;
 
 const timeAgo = (date) => {
@@ -96,7 +98,7 @@ const NotificationItem = ({ item, onDelete }) => {
 
 export default function MyNotifications() {
   const navigation = useNavigation();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -132,6 +134,22 @@ export default function MyNotifications() {
   useEffect(() => {
     fetchNotifications(1);
   }, []);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = io(SOCKET_URL);
+
+    socket.emit("register", user._id);
+
+    socket.on("newNotification", (notification) => {
+      setNotifications((current) => [notification, ...current]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user?._id]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
