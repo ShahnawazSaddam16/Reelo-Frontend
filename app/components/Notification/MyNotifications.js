@@ -70,9 +70,20 @@ const NotificationItem = ({ item, onDelete }) => {
         </Text>
       </View>
 
+      {item.postcontent ? (
+        <Image
+          source={{ uri: item.postcontent }}
+          className="w-11 h-11 rounded-md ml-2"
+        />
+      ) : (
+        <View className="w-11 h-11 rounded-md ml-2 bg-[#1A1A1D] items-center justify-center">
+          <Ionicons name="image-outline" size={18} color="#8E8E93" />
+        </View>
+      )}
+
       <TouchableOpacity
         onPress={() => onDelete(item._id)}
-        className="w-8 h-8 items-center justify-center"
+        className="w-8 h-8 items-center justify-center ml-1"
       >
         <Ionicons name="trash-outline" size={18} color="#8E8E93" />
       </TouchableOpacity>
