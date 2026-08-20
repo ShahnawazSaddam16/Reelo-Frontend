@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StatusBar } from "react-native";
 import * as SecureStore from "expo-secure-store";
 
 const API_URL = "http://192.168.100.77:5015/api";
@@ -81,6 +81,7 @@ export function AuthProvider({ children }) {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#0F0F0F]">
+        <StatusBar style="light"/>
         <ActivityIndicator color="#FFFFFF" size="large" />
       </View>
     );
