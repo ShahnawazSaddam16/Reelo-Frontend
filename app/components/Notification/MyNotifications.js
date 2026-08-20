@@ -57,7 +57,7 @@ const NotificationItem = ({ item, onDelete }) => {
         </View>
       </View>
 
-      <View className="flex-1 ml-3">
+      <View className="flex ml-3">
         <Text className="text-white text-sm leading-5">
           <Text className="font-semibold">{item.username}</Text>
           {isLike ? ' liked your post' : ' commented on your post'}
@@ -136,7 +136,7 @@ export default function MyNotifications() {
   };
 
   return (
-    <View className="flex-1 bg-[#0E0E10]">
+    <View className="flex">
       <View className="flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
         <TouchableOpacity
           onPress={() => navigation.navigate('HomeScreen')}
