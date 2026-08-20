@@ -3,15 +3,17 @@ import { Image, Pressable, Text, View } from "react-native";
 import { Bell, Home, Search, UserRound } from "lucide-react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { io } from "socket.io-client";
 import { useAuth } from "../../../contexts/AuthContext";
 
 const API_URL = "http://192.168.100.77:5015/api";
+const SOCKET_URL = "http://192.168.100.77:5015";
 
 export default function BottomBar() {
   const navigation = useNavigation();
   const route = useRoute();
   const insets = useSafeAreaInsets();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const [avatar, setAvatar] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -46,13 +48,29 @@ export default function BottomBar() {
         });
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.notifications)) {
-          const count = data.notifications.filter((n) => !n.isRead).length;
+          const count = data.notifications.filter((n) => !n.read).length;
           setUnreadCount(count);
         }
       } catch (err) {}
     };
     fetchNotificationCount();
   }, [token]);
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const socket = io(SOCKET_URL);
+
+    socket.emit("register", user._id);
+
+    socket.on("newNotification", () => {
+      setUnreadCount((prev) => prev + 1);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [user?._id]);
 
   const tabs = [
     {

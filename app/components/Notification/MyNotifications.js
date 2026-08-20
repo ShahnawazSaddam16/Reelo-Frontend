@@ -7,13 +7,14 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-  Alert,
+  Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const API_URL = "http://192.168.100.77:5015/api";
+const LIMIT = 10;
 
 const timeAgo = (date) => {
   const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -70,6 +71,7 @@ const NotificationItem = ({ item, onDelete }) => {
         </Text>
       </View>
 
+      <View className="flex-col justify-center items-center">
       {item.postcontent ? (
         <Image
           source={{ uri: item.postcontent }}
@@ -88,6 +90,7 @@ const NotificationItem = ({ item, onDelete }) => {
         <Ionicons name="trash-outline" size={18} color="#8E8E93" />
       </TouchableOpacity>
     </View>
+    </View>
   );
 };
 
@@ -97,58 +100,77 @@ export default function MyNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (pageNum = 1, isRefresh = false) => {
     try {
-      const res = await fetch(`${API_URL}/blog/my-notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/blog/my-notifications?page=${pageNum}&limit=${LIMIT}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       const data = await res.json();
       if (data.success) {
-        setNotifications(data.notifications);
+        const incoming = data.notifications || [];
+        setNotifications((current) =>
+          isRefresh || pageNum === 1 ? incoming : [...current, ...incoming]
+        );
+        setHasMore(incoming.length === LIMIT);
+        setPage(pageNum);
       }
     } catch (error) {
       console.log(error);
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingMore(false);
     }
   };
 
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(1);
   }, []);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchNotifications();
+    setHasMore(true);
+    fetchNotifications(1, true);
   }, []);
 
-  const handleDelete = async (id) => {
-    Alert.alert('Delete Notification', 'Are you sure you want to remove this?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          const prev = notifications;
-          setNotifications((current) => current.filter((n) => n._id !== id));
-          try {
-            await fetch(`${API_URL}/blog/delete-notifications/${id}`, {
-              method: 'DELETE',
-              headers: { Authorization: `Bearer ${token}` },
-            });
-          } catch (error) {
-            setNotifications(prev);
-          }
-        },
-      },
-    ]);
+  const handleLoadMore = () => {
+    if (loadingMore || !hasMore || loading) return;
+    setLoadingMore(true);
+    fetchNotifications(page + 1);
+  };
+
+  const handleDelete = (id) => {
+    setDeleteTarget(id);
+  };
+
+  const cancelDelete = () => {
+    setDeleteTarget(null);
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteTarget;
+    setDeleteTarget(null);
+    const prev = notifications;
+    setNotifications((current) => current.filter((n) => n._id !== id));
+    try {
+      await fetch(`${API_URL}/blog/delete-notifications/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (error) {
+      setNotifications(prev);
+    }
   };
 
   return (
     <View className="flex">
-      <View className="flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
+      <View className="w-full flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
         <TouchableOpacity
           onPress={() => navigation.navigate('HomeScreen')}
           className="w-9 h-9 items-center justify-center -ml-2"
@@ -194,8 +216,52 @@ export default function MyNotifications() {
               tintColor="#8B5CF6"
             />
           }
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View className="py-4 items-center justify-center">
+                <ActivityIndicator size="small" color="#8B5CF6" />
+              </View>
+            ) : null
+          }
         />
       )}
+
+      <Modal
+        visible={!!deleteTarget}
+        transparent
+        animationType="fade"
+        onRequestClose={cancelDelete}
+      >
+        <View className="flex-1 items-center justify-center bg-black/70 px-8">
+          <View className="w-full bg-[#1A1A1D] rounded-2xl px-5 py-6 border border-[#2A2A2E]">
+            <View className="w-14 h-14 rounded-full bg-[#0E0E10] items-center justify-center self-center mb-4">
+              <Ionicons name="trash-outline" size={26} color="#8B5CF6" />
+            </View>
+            <Text className="text-white text-base font-semibold text-center">
+              Delete Notification
+            </Text>
+            <Text className="text-[#8E8E93] text-sm text-center mt-2">
+              Are you sure you want to remove this? This action cannot be undone.
+            </Text>
+            <View className="flex-row mt-6">
+              <TouchableOpacity
+                onPress={cancelDelete}
+                className="flex-1 h-11 rounded-xl bg-[#0E0E10] items-center justify-center mr-2 border border-[#2A2A2E]"
+              >
+                <Text className="text-white text-sm font-semibold">Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmDelete}
+                className="flex-1 h-11 rounded-xl bg-[#8B5CF6] items-center justify-center ml-2"
+              >
+                <Text className="text-white text-sm font-semibold">Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
