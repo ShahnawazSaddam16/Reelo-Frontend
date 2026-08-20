@@ -162,10 +162,17 @@ export default function MyProfile() {
                 Your public presence
               </Text>
             </View>
+
+            <View className="flex-row">
+            <Pressable className="h-11 w-11 ml-6 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
+            onPress={()=>{setEdit(true)}}>
+              <PenLine size={16} color="#F4F4F5"/>
+            </Pressable>
             <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
             onPress={()=>{setEdit(true)}}>
               <PenLine size={16} color="#F4F4F5"/>
             </Pressable>
+            </View>
           </View>
 
           <View className="overflow-hidden rounded-[32px] border border-white/[0.08] bg-[#121216]">
