@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Video } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
-import { Heart, MessageCircle, User } from "lucide-react-native";
+import { Heart, MessageCircle, User, ImageOff } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import PostCommentsModal from "./PostCommentsModal";
 
@@ -214,7 +214,11 @@ export default function PostCards() {
     <>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
+        contentContainerStyle={
+          posts.length > 0
+            ? { paddingTop: 10, paddingBottom: 120 }
+            : { flexGrow: 1, paddingTop: 10, paddingBottom: 120 }
+        }
       >
         {posts.length > 0 ? (
           posts.map((item) => {
@@ -347,8 +351,11 @@ export default function PostCards() {
             );
           })
         ) : (
-          <View className="items-center justify-center py-20">
-            <Text className="text-white text-lg">No posts yet</Text>
+          <View className="flex-1 items-center justify-center">
+            <View className="w-20 h-20 rounded-full bg-white/5 items-center justify-center mb-4">
+              <ImageOff size={32} color="#A1A1AA" />
+            </View>
+            <Text className="text-white text-lg font-extrabold">No posts yet</Text>
           </View>
         )}
       </ScrollView>
