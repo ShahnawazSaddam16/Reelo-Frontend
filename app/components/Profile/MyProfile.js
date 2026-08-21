@@ -18,9 +18,11 @@ import {
   User,
   Mail,
   Sparkles,
+  Settings
 } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import EditProfile from "./EditProfile";
+import {useNavigation} from "@react-navigation/native";
 
 export default function MyProfile() {
   const API_URL = "http://192.168.100.77:5015/api";
@@ -29,6 +31,7 @@ export default function MyProfile() {
   const [profile, setProfile] = useState(null);
   const [userPosts, setUserPosts] = useState([]);
   const [edit, setEdit] = useState(false);
+  const navigation = useNavigation();
   const { token } = useAuth();
 
   const resolveAvatarUrl = (path) => {
@@ -164,13 +167,13 @@ export default function MyProfile() {
             </View>
 
             <View className="flex-row">
-            <Pressable className="h-11 w-11 ml-6 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
+            <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
             onPress={()=>{setEdit(true)}}>
               <PenLine size={16} color="#F4F4F5"/>
             </Pressable>
             <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
-            onPress={()=>{setEdit(true)}}>
-              <PenLine size={16} color="#F4F4F5"/>
+            onPress={()=>{navigation.navigate("SettingScreen")}}>
+              <Settings size={16} color="#F4F4F5"/>
             </Pressable>
             </View>
           </View>
