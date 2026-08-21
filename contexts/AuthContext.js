@@ -1,10 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { View, ActivityIndicator, StatusBar } from "react-native";
+import { View, ActivityIndicator } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import * as SecureStore from "expo-secure-store";
+import { createNavigationContainerRef } from "@react-navigation/native";
 
 const API_URL = "http://192.168.100.77:5015/api";
 
 const AuthContext = createContext();
+
+export const navigationRef = createNavigationContainerRef();
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
@@ -18,6 +22,9 @@ export function AuthProvider({ children }) {
       if (!storedToken) {
         setIsLoggedIn(false);
         setIsLoading(false);
+        if (navigationRef.isReady()) {
+          navigationRef.navigate("AuthScreen");
+        }
         return;
       }
 
@@ -47,6 +54,9 @@ export function AuthProvider({ children }) {
         setToken(null);
         setUser(null);
         setIsLoggedIn(false);
+        if (navigationRef.isReady()) {
+          navigationRef.navigate("AuthScreen");
+        }
         return;
       }
 
@@ -55,6 +65,9 @@ export function AuthProvider({ children }) {
       setIsLoggedIn(true);
     } catch (err) {
       setIsLoggedIn(false);
+      if (navigationRef.isReady()) {
+        navigationRef.navigate("AuthScreen");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -76,12 +89,15 @@ export function AuthProvider({ children }) {
     setToken(null);
     setUser(null);
     setIsLoggedIn(false);
+    if (navigationRef.isReady()) {
+      navigationRef.navigate("AuthScreen");
+    }
   };
 
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#0F0F0F]">
-        <StatusBar style="light"/>
+        <StatusBar style="light" />
         <ActivityIndicator color="#FFFFFF" size="large" />
       </View>
     );
