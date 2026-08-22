@@ -166,7 +166,7 @@ export default function MyProfile() {
               </Text>
             </View>
 
-            <View className="flex-row">
+            <View className="flex-row gap-2">
             <Pressable className="h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] active:opacity-70"
             onPress={()=>{setEdit(true)}}>
               <PenLine size={16} color="#F4F4F5"/>

@@ -38,7 +38,7 @@ const NotificationItem = ({ item, onDelete }) => {
   const isLike = item.type === 'like';
 
   return (
-    <View className="flex-row items-center px-4 py-3">
+    <View className="flex-row items-center mt-10 px-4 py-3">
       <View className="relative">
         {item.avator ? (
           <Image
@@ -50,7 +50,7 @@ const NotificationItem = ({ item, onDelete }) => {
             <Ionicons name="person" size={22} color="#8B5CF6" />
           </View>
         )}
-        <View className="absolute -bottom-1 -right-1 w-full h-5 rounded-full bg-[#0E0E10] items-center justify-center border border-[#0E0E10]">
+        <View className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0E0E10] items-center justify-center border border-[#0E0E10]">
           <View className="w-4 h-4 rounded-full bg-[#8B5CF6] items-center justify-center">
             <Ionicons
               name={isLike ? 'heart' : 'chatbubble'}
