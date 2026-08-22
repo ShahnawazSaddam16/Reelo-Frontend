@@ -50,7 +50,7 @@ const NotificationItem = ({ item, onDelete }) => {
             <Ionicons name="person" size={22} color="#8B5CF6" />
           </View>
         )}
-        <View className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#0E0E10] items-center justify-center border border-[#0E0E10]">
+        <View className="absolute -bottom-1 -right-1 w-full h-5 rounded-full bg-[#0E0E10] items-center justify-center border border-[#0E0E10]">
           <View className="w-4 h-4 rounded-full bg-[#8B5CF6] items-center justify-center">
             <Ionicons
               name={isLike ? 'heart' : 'chatbubble'}
@@ -221,7 +221,7 @@ export default function MyNotifications() {
 
   return (
     <View className="flex">
-      <View className="w-full flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
+      <View className="flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
         <TouchableOpacity
           onPress={() => navigation.navigate('HomeScreen')}
           className="w-9 h-9 items-center justify-center -ml-2"
