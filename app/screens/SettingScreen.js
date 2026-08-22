@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DangerZone from '../components/Settings/DangerZone';
+import NotificationsControls from '../components/Settings/NotificationsControls';
 
 export default function SettingsHeader() {
   const navigation = useNavigation();
@@ -39,6 +40,7 @@ export default function SettingsHeader() {
         contentContainerStyle={{ paddingTop: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
+        <NotificationsControls />
         <DangerZone />
       </ScrollView>
     </View>
