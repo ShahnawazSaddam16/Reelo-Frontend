@@ -16,6 +16,7 @@ export default function BottomBar() {
   const { token, user } = useAuth();
   const [avatar, setAvatar] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationSwitch, setNotificationSwitch] = useState(true);
 
   useEffect(() => {
     const fetchAvatar = async () => {
@@ -34,6 +35,25 @@ export default function BottomBar() {
       } catch (err) {}
     };
     fetchAvatar();
+  }, [token]);
+
+  useEffect(() => {
+    const fetchNotificationSwitch = async () => {
+      try {
+        const res = await fetch(`${API_URL}/setting/get-notification-control`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && typeof data.notificationSwitch === "boolean") {
+          setNotificationSwitch(data.notificationSwitch);
+        }
+      } catch (err) {}
+    };
+    fetchNotificationSwitch();
   }, [token]);
 
   useEffect(() => {
@@ -134,7 +154,7 @@ export default function BottomBar() {
                   color={active ? "#F8FAFC" : "#A1A1AA"}
                   strokeWidth={2.25}
                 />
-                {key === "Notifications" && unreadCount > 0 && (
+                {key === "Notifications" && notificationSwitch && unreadCount > 0 && (
                   <View className="absolute -right-2 -top-1 w-[16px] h-[16px] items-center justify-center rounded-full bg-red-500 px-1">
                     <Text className="text-[9px] font-bold text-white">
                       {unreadCount > 99 ? "99+" : unreadCount}

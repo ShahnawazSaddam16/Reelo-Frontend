@@ -38,7 +38,7 @@ const NotificationItem = ({ item, onDelete }) => {
   const isLike = item.type === 'like';
 
   return (
-    <View className="flex-row items-center mt-10 px-4 py-3">
+    <View className="flex-row items-center px-4 py-3">
       <View className="relative">
         {item.avator ? (
           <Image
@@ -109,6 +109,7 @@ export default function MyNotifications() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const pendingBatchRef = useRef([]);
   const batchTimerRef = useRef(null);
+  const notificationSwitchRef = useRef(true);
 
   const fetchNotifications = async (pageNum = 1, isRefresh = false) => {
     try {
@@ -139,6 +140,24 @@ export default function MyNotifications() {
   }, []);
 
   useEffect(() => {
+    const fetchNotificationSwitch = async () => {
+      try {
+        const res = await fetch(`${API_URL}/setting/get-notification-control`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (res.ok && typeof data.notificationSwitch === 'boolean') {
+          notificationSwitchRef.current = data.notificationSwitch;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchNotificationSwitch();
+  }, []);
+
+  useEffect(() => {
     if (!user?._id) return;
 
     const socket = io(SOCKET_URL);
@@ -160,6 +179,7 @@ export default function MyNotifications() {
         batchTimerRef.current = null;
 
         if (batch.length === 0) return;
+        if (!notificationSwitchRef.current) return;
 
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -221,7 +241,7 @@ export default function MyNotifications() {
 
   return (
     <View className="flex">
-      <View className="flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
+      <View className="w-full flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
         <TouchableOpacity
           onPress={() => navigation.navigate('HomeScreen')}
           className="w-9 h-9 items-center justify-center -ml-2"
