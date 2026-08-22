@@ -33,7 +33,7 @@ export default function DangerZone() {
 
   return (
     <View className="w-full ml-[1.5px]">
-      <Text className="text-[#EF4444] text-lg font-semibold px-1 mb-3">Danger Zone</Text>
+      <Text className="ml-2 text-[#EF4444] text-lg font-semibold px-1 mb-3">Danger Zone</Text>
 
       <View className="w-full bg-[#161618] rounded-2xl overflow-hidden">
         <TouchableOpacity
