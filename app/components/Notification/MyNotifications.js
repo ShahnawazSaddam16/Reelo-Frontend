@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { io } from 'socket.io-client';
+import * as Notifications from 'expo-notifications';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const API_URL = "http://192.168.100.77:5015/api";
@@ -106,6 +107,8 @@ export default function MyNotifications() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const pendingBatchRef = useRef([]);
+  const batchTimerRef = useRef(null);
 
   const fetchNotifications = async (pageNum = 1, isRefresh = false) => {
     try {
@@ -144,9 +147,39 @@ export default function MyNotifications() {
 
     socket.on("newNotification", (notification) => {
       setNotifications((current) => [notification, ...current]);
+
+      pendingBatchRef.current = [...pendingBatchRef.current, notification];
+
+      if (batchTimerRef.current) {
+        clearTimeout(batchTimerRef.current);
+      }
+
+      batchTimerRef.current = setTimeout(async () => {
+        const batch = pendingBatchRef.current;
+        pendingBatchRef.current = [];
+        batchTimerRef.current = null;
+
+        if (batch.length === 0) return;
+
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: batch.length === 1 ? "New notification" : "New notifications",
+            body:
+              batch.length === 1
+                ? `${batch[0].username} ${batch[0].type === 'like' ? 'liked' : 'commented on'} your post`
+                : `You have ${batch.length} new notifications`,
+          },
+          trigger: null,
+        });
+      }, 1500);
     });
 
     return () => {
+      if (batchTimerRef.current) {
+        clearTimeout(batchTimerRef.current);
+        batchTimerRef.current = null;
+      }
+      pendingBatchRef.current = [];
       socket.disconnect();
     };
   }, [user?._id]);
