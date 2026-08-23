@@ -1,13 +1,53 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, View, Text, TouchableOpacity, Image } from 'react-native'
 import { Video, ResizeMode } from 'expo-av'
 import { X, Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-export default function StoryViewer({ visible, onClose, group }) {
+const API_URL = 'http://192.168.100.77:5015/api'
+
+export default function StoryViewer({ visible, onClose, group, token }) {
   const [index, setIndex] = useState(0)
   const [liked, setLiked] = useState({})
+  const [likeCounts, setLikeCounts] = useState({})
   const insets = useSafeAreaInsets()
+
+  useEffect(() => {
+    if (!visible || !group) return
+
+    const initial = {}
+    const initialCounts = {}
+    group.stories.forEach((story, i) => {
+      initial[i] = !!story.likedBy?.some((uid) => String(uid) === String(group.currentUserId))
+      initialCounts[i] = story.likes || 0
+    })
+    setLiked(initial)
+    setLikeCounts(initialCounts)
+  }, [visible, group])
+
+  useEffect(() => {
+    if (!visible || !group || group.isOwner || !token) return
+
+    const markAllSeen = async () => {
+      try {
+        await Promise.all(
+          group.stories.map((story) =>
+            fetch(`${API_URL}/story/seen-story/${story._id}/seen`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+            })
+          )
+        )
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    markAllSeen()
+  }, [visible, group, token])
 
   if (!group || !group.stories || group.stories.length === 0) return null
 
@@ -15,8 +55,25 @@ export default function StoryViewer({ visible, onClose, group }) {
   const hasPrev = index > 0
   const hasNext = index < group.stories.length - 1
 
-  const toggleLike = () => {
-    setLiked((prev) => ({ ...prev, [index]: !prev[index] }))
+  const toggleLike = async () => {
+    try {
+      const res = await fetch(`${API_URL}/story/like-story/${story._id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await res.json()
+
+      if (data && data.success) {
+        setLiked((prev) => ({ ...prev, [index]: data.liked }))
+        setLikeCounts((prev) => ({ ...prev, [index]: data.likes }))
+      }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   const goPrev = () => {
@@ -100,22 +157,31 @@ export default function StoryViewer({ visible, onClose, group }) {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: group.isOwner ? 'space-between' : 'flex-end',
             paddingHorizontal: 20,
             paddingTop: 16,
             paddingBottom: insets.bottom + 16,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Eye size={16} color="rgba(255,255,255,0.6)" />
-            <Text style={{ color: 'rgba(255,255,255,0.6)', marginLeft: 6, fontSize: 13 }}>
-              Seen by {story.views?.length || 0}
-            </Text>
-          </View>
+          {group.isOwner && (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Eye size={16} color="rgba(255,255,255,0.6)" />
+              <Text style={{ color: 'rgba(255,255,255,0.6)', marginLeft: 6, fontSize: 13 }}>
+                Seen by {story.viewedBy?.length || 0}
+              </Text>
+            </View>
+          )}
 
-          <TouchableOpacity onPress={toggleLike}>
-            <Heart size={26} color={liked[index] ? '#a855f7' : '#fff'} fill={liked[index] ? '#a855f7' : 'transparent'} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {likeCounts[index] > 0 && (
+              <Text style={{ color: 'rgba(255,255,255,0.6)', marginRight: 8, fontSize: 13 }}>
+                {likeCounts[index]}
+              </Text>
+            )}
+            <TouchableOpacity onPress={toggleLike}>
+              <Heart size={26} color={liked[index] ? '#a855f7' : '#fff'} fill={liked[index] ? '#a855f7' : 'transparent'} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>

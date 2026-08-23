@@ -70,6 +70,7 @@ export default function Stories() {
               userId: uid,
               username: story.userId?.username || story.username || 'Unknown',
               avatar: resolveAvatarUrl(story.userId?.avator || story.avator),
+              isOwner: false,
               stories: [],
             }
           }
@@ -92,7 +93,7 @@ export default function Stories() {
 
   const handleMyAvatarPress = () => {
     if (hasMyStory) {
-      setActiveGroup({ username: 'Your Story', avatar: myAvatarUrl, stories: myStories })
+      setActiveGroup({ username: 'Your Story', avatar: myAvatarUrl, isOwner: true, stories: myStories })
       setViewerVisible(true)
     } else {
       setCreateVisible(true)
@@ -230,6 +231,7 @@ export default function Stories() {
         visible={viewerVisible}
         onClose={() => setViewerVisible(false)}
         group={activeGroup}
+        token={token}
       />
 
       <CreateStory
