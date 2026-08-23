@@ -71,6 +71,7 @@ export default function Stories() {
               username: story.userId?.username || story.username || 'Unknown',
               avatar: resolveAvatarUrl(story.userId?.avator || story.avator),
               isOwner: false,
+              currentUserId: myId,
               stories: [],
             }
           }
@@ -93,7 +94,7 @@ export default function Stories() {
 
   const handleMyAvatarPress = () => {
     if (hasMyStory) {
-      setActiveGroup({ username: 'Your Story', avatar: myAvatarUrl, isOwner: true, stories: myStories })
+      setActiveGroup({ username: 'Your Story', avatar: myAvatarUrl, isOwner: true, stories: myStories, currentUserId: user?._id })
       setViewerVisible(true)
     } else {
       setCreateVisible(true)
@@ -129,7 +130,7 @@ export default function Stories() {
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
-        className="mt-10"
+        className="mt-1"
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
       >
         <TouchableOpacity onPress={handleMyAvatarPress} activeOpacity={0.8} style={{ alignItems: 'center', marginRight: 16 }}>
