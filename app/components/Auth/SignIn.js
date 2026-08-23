@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, Modal } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import EmailVerification from "./EmailVerification.js";
+import { useFonts, GrandHotel_400Regular } from "@expo-google-fonts/grand-hotel";
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync();
 
 const API_URL = "http://192.168.100.77:5015/api";
 
@@ -18,6 +22,20 @@ export default function SignIn({ setSignIn }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+
+  const [fontsLoaded] = useFonts({
+    GrandHotel_400Regular,
+  });
+
+  const onLayoutRootView = useCallback(async () => {
+    if (fontsLoaded) {
+      await SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const showAlert = (title, message) => {
     setAlertTitle(title);
@@ -67,7 +85,19 @@ export default function SignIn({ setSignIn }) {
   }
 
   return (
-    <View className="w-[90%] max-w-[380px] bg-[#121216] rounded-2xl border border-white/[0.08] p-6">
+    <View className="w-[90%] max-w-[380px] bg-[#121216] rounded-2xl border border-white/[0.08] p-6" onLayout={onLayoutRootView}>
+      <View className="items-center mb-4">
+        <Text
+          style={{
+            fontFamily: "GrandHotel_400Regular",
+            fontSize: 34,
+            color: "#fff",
+          }}
+        >
+          Reelo
+        </Text>
+      </View>
+
       <Text className="text-white text-[22px] font-semibold mb-1">
         Create account
       </Text>
