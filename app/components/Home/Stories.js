@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Plus, User } from 'lucide-react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { useAuth } from '../../../contexts/AuthContext'
 import StoryViewer from './StoryViewer'
 import CreateStory from './CreateStory'
@@ -88,6 +89,12 @@ export default function Stories() {
   useEffect(() => {
     if (token && user?._id) fetchData()
   }, [token, user, fetchData])
+
+  useFocusEffect(
+    useCallback(() => {
+      if (token && user?._id) fetchData()
+    }, [token, user, fetchData])
+  )
 
   const hasMyStory = myStories.length > 0
   const myAvatarUrl = resolveAvatarUrl(profile?.avator)
