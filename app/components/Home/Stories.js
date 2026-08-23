@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import { Plus } from 'lucide-react-native'
+import { Plus, User } from 'lucide-react-native'
 import { useAuth } from '../../../contexts/AuthContext'
 import StoryViewer from './StoryViewer'
 import CreateStory from './CreateStory'
@@ -19,6 +19,14 @@ export default function Stories() {
   const [activeGroup, setActiveGroup] = useState(null)
   const [createVisible, setCreateVisible] = useState(false)
   const loadingMoreRef = useRef(false)
+
+  const resolveAvatarUrl = (path) => {
+    if (!path) return null
+    if (typeof path === 'object' && path.uri) return path.uri
+    if (path.startsWith('http://') || path.startsWith('https://')) return path
+    const baseUrl = API_URL.replace(/\/api$/, '')
+    return `${baseUrl}/${path.replace(/\\/g, '/')}`
+  }
 
   const safeParseJSON = async (res) => {
     try {
@@ -52,15 +60,16 @@ export default function Stories() {
       if (allStoriesData && allStoriesData.success) {
         const list = allStoriesData.allStories || []
         const grouped = {}
+        const myId = String(user?._id || '')
 
         list.forEach((story) => {
-          const uid = story.userId?._id || story.userId
-          if (uid === user?._id) return
+          const uid = String(story.userId?._id || story.userId || '')
+          if (!uid || uid === myId) return
           if (!grouped[uid]) {
             grouped[uid] = {
               userId: uid,
               username: story.userId?.username || story.username || 'Unknown',
-              avatar: story.userId?.avator || story.avator || null,
+              avatar: resolveAvatarUrl(story.userId?.avator || story.avator),
               stories: [],
             }
           }
@@ -79,10 +88,11 @@ export default function Stories() {
   }, [token, user, fetchData])
 
   const hasMyStory = myStories.length > 0
+  const myAvatarUrl = resolveAvatarUrl(profile?.avator)
 
   const handleMyAvatarPress = () => {
     if (hasMyStory) {
-      setActiveGroup({ username: 'Your Story', avatar: profile?.avator, stories: myStories })
+      setActiveGroup({ username: 'Your Story', avatar: myAvatarUrl, stories: myStories })
       setViewerVisible(true)
     } else {
       setCreateVisible(true)
@@ -130,15 +140,38 @@ export default function Stories() {
               style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}
             >
               <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
-                <Image source={{ uri: profile?.avator }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                {myAvatarUrl ? (
+                  <Image source={{ uri: myAvatarUrl }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                ) : (
+                  <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
+                    <User size={22} color="#A1A1AA" />
+                  </View>
+                )}
               </View>
             </LinearGradient>
           ) : (
             <View style={{ width: 64, height: 64 }}>
-              <Image
-                source={{ uri: profile?.avator }}
-                style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}
-              />
+              {myAvatarUrl ? (
+                <Image
+                  source={{ uri: myAvatarUrl }}
+                  style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}
+                />
+              ) : (
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.12)',
+                    backgroundColor: '#1B1B1F',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <User size={26} color="#A1A1AA" />
+                </View>
+              )}
               <View
                 style={{
                   position: 'absolute',
@@ -177,7 +210,13 @@ export default function Stories() {
               style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}
             >
               <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
-                <Image source={{ uri: group.avatar }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                {group.avatar ? (
+                  <Image source={{ uri: group.avatar }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                ) : (
+                  <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
+                    <User size={22} color="#A1A1AA" />
+                  </View>
+                )}
               </View>
             </LinearGradient>
             <Text className="text-white text-xs mt-2" numberOfLines={1} style={{ maxWidth: 64 }}>
