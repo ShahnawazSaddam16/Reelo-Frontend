@@ -11,7 +11,7 @@ SplashScreen.preventAutoHideAsync();
 
 const API_URL = "http://192.168.100.77:5015/api";
 
-export default function Login({ setSignIn }) {
+export default function Login({ setSignIn, setForgotPassword }) {
   const navigation = useNavigation();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -106,7 +106,7 @@ export default function Login({ setSignIn }) {
       />
 
       <Text className="text-[#B0B0B0] text-[13px] mb-2">Password</Text>
-      <View className="flex-row items-center bg-[#111111] border border-[#2A2A2A] rounded-xl px-4 mb-6">
+      <View className="flex-row items-center bg-[#111111] border border-[#2A2A2A] rounded-xl px-4 mb-3">
         <TextInput
           value={password}
           onChangeText={setPassword}
@@ -123,6 +123,12 @@ export default function Login({ setSignIn }) {
           )}
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity onPress={() => setForgotPassword(true)} className="self-end mb-6">
+        <Text className="text-[#8B5CF6] text-[13px] font-medium">
+          Forgot password?
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         onPress={handleLogin}
