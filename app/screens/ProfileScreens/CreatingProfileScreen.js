@@ -6,7 +6,7 @@ import CreatingProfile from "../../components/Profile/CreatingProfile";
 
 export default function CreatingProfileScreen() {
 
-const API_URL = "http://192.168.100.77:8081/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 
   const navigation = useNavigation();
   const { token } = useAuth();

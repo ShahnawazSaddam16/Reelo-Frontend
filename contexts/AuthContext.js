@@ -4,7 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SecureStore from "expo-secure-store";
 import { createNavigationContainerRef } from "@react-navigation/native";
 
-const API_URL = "http://192.168.100.77:8081/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 const AuthContext = createContext();
 

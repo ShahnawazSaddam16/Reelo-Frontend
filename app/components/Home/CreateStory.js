@@ -3,7 +3,7 @@ import { Modal, View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollVi
 import * as ImagePicker from 'expo-image-picker'
 import { X, Upload, AlertCircle } from 'lucide-react-native'
 
-const API_URL = "http://192.168.100.77:8081/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 export default function CreateStory({ visible, onClose, token, onCreated }) {
   const [media, setMedia] = useState(null)

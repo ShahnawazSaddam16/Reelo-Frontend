@@ -4,7 +4,7 @@ import {useAuth} from "../../../contexts/AuthContext";
 
 export default function EditProfile({ edit, setEdit, profile, setProfile }) {
 
-const API_URL = "http://192.168.100.77:8081/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [username, setUsername] = useState(profile?.username || "")
   const [bio, setBio] = useState(profile?.bio || "")
   const [links, setLinks] = useState(profile?.links?.join(", ") || "")
