@@ -15,8 +15,8 @@ import { io } from 'socket.io-client';
 import * as Notifications from 'expo-notifications';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const API_URL = "http://192.168.100.77:5015/api";
-const SOCKET_URL = "http://192.168.100.77:5015";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
+const SOCKET_URL = "https://api.reelo.buttnetworks.com";
 const LIMIT = 10;
 
 const timeAgo = (date) => {

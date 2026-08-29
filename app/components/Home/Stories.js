@@ -10,7 +10,7 @@ import CreateStory from './CreateStory'
 const PAGE_SIZE = 10
 
 export default function Stories() {
-  const API_URL = 'http://192.168.100.77:5015/api'
+  const API_URL = 'https://api.reelo.buttnetworks.com/api'
   const { token, user } = useAuth()
   const [profile, setProfile] = useState(null)
   const [myStories, setMyStories] = useState([])

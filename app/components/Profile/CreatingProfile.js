@@ -26,7 +26,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../../contexts/AuthContext";
 
-const API_URL = "http://192.168.100.77:5015/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 export default function CreatingProfile() {
   const navigation = useNavigation();

@@ -4,7 +4,7 @@ import { Video, ResizeMode } from 'expo-av'
 import { X, Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-const API_URL = 'http://192.168.100.77:5015/api'
+const API_URL = 'https://api.reelo.buttnetworks.com/api'
 
 export default function StoryViewer({ visible, onClose, group, token }) {
   const [index, setIndex] = useState(0)

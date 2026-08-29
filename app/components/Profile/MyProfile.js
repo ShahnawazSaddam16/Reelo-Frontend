@@ -25,7 +25,7 @@ import EditProfile from "./EditProfile";
 import {useNavigation} from "@react-navigation/native";
 
 export default function MyProfile() {
-  const API_URL = "http://192.168.100.77:5015/api";
+  const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState(null);

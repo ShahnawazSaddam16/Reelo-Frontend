@@ -14,7 +14,7 @@ import { Heart, MessageCircle, User, ImageOff } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import PostCommentsModal from "./PostCommentsModal";
 
-const API_URL = "http://192.168.100.77:5015/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 

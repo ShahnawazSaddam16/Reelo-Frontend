@@ -17,7 +17,7 @@ import { Search, X, User } from "lucide-react-native";
 import BottomBar from "../components/App-Shell/BottomBar";
 import { useAuth } from "../../contexts/AuthContext";
 
-const API_URL = "http://192.168.100.77:5015/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 const PURPLE = "#8B5CF6";
 const PURPLE_DIM = "rgba(139,92,246,0.15)";
 

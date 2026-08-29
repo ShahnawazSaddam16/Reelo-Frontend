@@ -24,7 +24,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import BottomBar from "../../components/App-Shell/BottomBar";
 import UserPosts from "../../components/Blogs/UserPosts";
 
-const API_URL = "http://192.168.100.77:5015/api";
+const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 export default function UserProfileScreen() {
   const insets = useSafeAreaInsets();
