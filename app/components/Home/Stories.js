@@ -150,7 +150,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
             >
               <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
                 {myAvatarUrl ? (
-                  <Image source={{ uri: myAvatarUrl }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                  <Image source={{ uri: myAvatarUrl, cache: 'reload' }} style={{ width: 52, height: 52, borderRadius: 26 }} />
                 ) : (
                   <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
                     <User size={22} color="#A1A1AA" />
@@ -162,7 +162,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
             <View style={{ width: 64, height: 64 }}>
               {myAvatarUrl ? (
                 <Image
-                  source={{ uri: myAvatarUrl }}
+                  source={{ uri: myAvatarUrl, cache: 'reload' }}
                   style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}
                 />
               ) : (
@@ -220,7 +220,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
             >
               <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
                 {group.avatar ? (
-                  <Image source={{ uri: group.avatar }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                  <Image source={{ uri: group.avatar, cache: 'reload' }} style={{ width: 52, height: 52, borderRadius: 26 }} />
                 ) : (
                   <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
                     <User size={22} color="#A1A1AA" />
