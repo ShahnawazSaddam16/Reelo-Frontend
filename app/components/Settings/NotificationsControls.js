@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+const API_URL = "http://192.168.100.77:8081/api";
 
 export default function NotificationsControls() {
   const navigation = useNavigation();

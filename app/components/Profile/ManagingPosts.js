@@ -23,7 +23,7 @@ const SCREEN_HEIGHT = Dimensions.get("window").height
 const SLIDE_HEIGHT = 420
 
 export default function ManagingPosts({ onPostsUpdated }) {
-  const API_URL = "https://api.reelo.buttnetworks.com/api"
+const API_URL = "http://192.168.100.77:8081/api";
   const navigation = useNavigation()
   const { token } = useAuth()
 

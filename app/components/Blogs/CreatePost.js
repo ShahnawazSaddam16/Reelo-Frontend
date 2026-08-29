@@ -18,7 +18,7 @@ import { useNavigation, useRoute } from "@react-navigation/native"
 import { useAuth } from "../../../contexts/AuthContext"
 
 export default function CreatePost() {
-  const API_URL = "https://api.reelo.buttnetworks.com/api"
+const API_URL = "http://192.168.100.77:8081/api";
   const { token } = useAuth()
   const navigation = useNavigation()
   const route = useRoute()

@@ -9,7 +9,7 @@ import * as SplashScreen from "expo-splash-screen";
 
 SplashScreen.preventAutoHideAsync();
 
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+const API_URL = "http://192.168.100.77:8081/api";
 
 export default function SignIn({ setSignIn }) {
   const navigation = useNavigation();
