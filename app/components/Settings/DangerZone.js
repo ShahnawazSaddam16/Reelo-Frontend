@@ -28,6 +28,7 @@ export default function DangerZone() {
         Authorization: `Bearer ${token}`,
       },
     });
+    await logout();
     navigation.navigate("AuthScreen");
   };
 
