@@ -87,7 +87,13 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   }, [token, user])
 
   useEffect(() => {
-    if (token && user?._id) fetchData()
+    if (token && user?._id) {
+      fetchData()
+      const retry = setTimeout(() => {
+        fetchData()
+      }, 1500)
+      return () => clearTimeout(retry)
+    }
   }, [token, user, fetchData])
 
   useFocusEffect(
