@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
-import { View, Text, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Image } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import {useAuth} from "../../../contexts/AuthContext";
 
 export default function EditProfile({ edit, setEdit, profile, setProfile }) {
@@ -8,6 +9,8 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [username, setUsername] = useState(profile?.username || "")
   const [bio, setBio] = useState(profile?.bio || "")
   const [links, setLinks] = useState(profile?.links?.join(", ") || "")
+  const [avator, setAvator] = useState(profile?.avator || "")
+  const [newAvator, setNewAvator] = useState(null)
   const [loading, setLoading] = useState(false)
   const [focusedField, setFocusedField] = useState("");
   const {token} = useAuth();
@@ -30,6 +33,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
           setUsername(data.profile?.username || "")
           setBio(data.profile?.bio || "")
           setLinks(data.profile?.links?.join(", ") || "")
+          setAvator(data.profile?.avator || "")
         }
       } catch (err) {
         console.log(err)
@@ -41,23 +45,65 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     }
   }, [edit, token])
 
+  const pickAvatar = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) {
+      setStatus({ type: "error", message: "Permission to access photos is required" })
+      setTimeout(() => setStatus(null), 2500)
+      return
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    })
+
+    if (!result.canceled) {
+      setNewAvator(result.assets[0])
+    }
+  }
+
   const handleUpdate = async () => {
     try {
       setLoading(true)
       setStatus(null)
 
-      const res = await fetch(`${API_URL}/profile/edit-profile`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          username,
-          bio,
-          links: links.split(",").map((link) => link.trim()).filter(Boolean)
+      let res
+
+      if (newAvator) {
+        const formData = new FormData()
+        formData.append("username", username)
+        formData.append("bio", bio)
+        links.split(",").map((link) => link.trim()).filter(Boolean).forEach((link) => formData.append("links", link))
+        formData.append("avator", {
+          uri: newAvator.uri,
+          name: newAvator.fileName || "avatar.jpg",
+          type: newAvator.mimeType || "image/jpeg",
         })
-      })
+
+        res = await fetch(`${API_URL}/profile/edit-profile`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        })
+      } else {
+        res = await fetch(`${API_URL}/profile/edit-profile`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+             Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            username,
+            bio,
+            links: links.split(",").map((link) => link.trim()).filter(Boolean)
+          })
+        })
+      }
 
       const contentType = res.headers.get("content-type") || ""
 
@@ -71,6 +117,8 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
 
       if (data.success) {
         setProfile(data.profile)
+        setAvator(data.profile?.avator || "")
+        setNewAvator(null)
         setStatus({ type: "success", message: data.message || "Profile Updated Successfully" })
         setTimeout(() => {
           setStatus(null)
@@ -127,6 +175,24 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
                     </Text>
                   </View>
                 )}
+
+                <View className="items-center mb-8">
+                  <Pressable onPress={pickAvatar} className="relative">
+                    {newAvator?.uri || avator ? (
+                      <Image
+                        source={{ uri: newAvator?.uri || avator }}
+                        className="w-24 h-24 rounded-full border border-purple-500/40"
+                      />
+                    ) : (
+                      <View className="w-24 h-24 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center">
+                        <Text className="text-neutral-500 text-xs">No Photo</Text>
+                      </View>
+                    )}
+                    <View className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-purple-600 border-2 border-neutral-950 items-center justify-center">
+                      <Text className="text-white text-xs">✎</Text>
+                    </View>
+                  </Pressable>
+                </View>
 
                 <View className="mb-5">
                   <Text className="text-neutral-400 text-xs mb-2 ml-1">Username</Text>
