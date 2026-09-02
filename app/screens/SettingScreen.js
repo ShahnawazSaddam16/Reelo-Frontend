@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,10 +6,18 @@ import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DangerZone from '../components/Settings/DangerZone';
 import NotificationsControls from '../components/Settings/NotificationsControls';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function SettingsHeader() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { token, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !token) {
+      navigation.navigate('AuthScreen');
+    }
+  }, [isLoading, token]);
 
   return (
     <View className="flex-1 bg-[#0E0E10]">
