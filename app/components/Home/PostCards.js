@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Dimensions,
+  Modal,
 } from "react-native";
 import { Video } from "expo-av";
 import { useNavigation } from "@react-navigation/native";
@@ -371,19 +372,23 @@ export default function PostCards() {
         onCommentCountChange={handleCommentCountChange}
       />
 
-      {/* Image viewer modal (unchanged) */}
-      {viewerVisible ? (
+      {/* Image viewer modal - now uses RN Modal for true full-screen coverage */}
+      <Modal
+        visible={viewerVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => {
+          setViewerVisible(false);
+          setViewerUri(null);
+        }}
+      >
         <View
           style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            flex: 1,
             backgroundColor: "rgba(0,0,0,0.98)",
             alignItems: "center",
             justifyContent: "center",
-            zIndex: 50,
           }}
         >
           <TouchableOpacity
@@ -409,7 +414,7 @@ export default function PostCards() {
             />
           ) : null}
         </View>
-      ) : null}
+      </Modal>
     </>
   );
 }
