@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { io } from 'socket.io-client';
-import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
 
 const API_URL = "https://api.reelo.buttnetworks.com/api";
@@ -181,16 +181,24 @@ export default function MyNotifications() {
         if (batch.length === 0) return;
         if (!notificationSwitchRef.current) return;
 
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: batch.length === 1 ? "New notification" : "New notifications",
-            body:
-              batch.length === 1
-                ? `${batch[0].username} ${batch[0].type === 'like' ? 'liked' : 'commented on'} your post`
-                : `You have ${batch.length} new notifications`,
-          },
-          trigger: null,
-        });
+        try {
+          const Notifications = await import('expo-notifications');
+          if (Notifications && Notifications.scheduleNotificationAsync) {
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: batch.length === 1 ? 'New notification' : 'New notifications',
+                body:
+                  batch.length === 1
+                    ? `${batch[0].username} ${batch[0].type === 'like' ? 'liked' : 'commented on'} your post`
+                    : `You have ${batch.length} new notifications`,
+              },
+              trigger: null,
+            });
+          }
+        } catch (e) {
+          // If running in Expo Go or notifications module isn't available, skip scheduling
+          console.log('Notification scheduling skipped:', e.message || e);
+        }
       }, 1500);
     });
 

@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, View, Text, TouchableOpacity, Image } from 'react-native'
-import { Video, ResizeMode } from 'expo-av'
+import { useVideoPlayer, VideoView } from 'expo-video'
 import { X, Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 function StoryVideo({ uri }) {
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = true
+    player.play()
+  })
+
   return (
-    <Video
-      source={{ uri }}
+    <VideoView
+      player={player}
       style={{ flex: 1 }}
-      resizeMode={ResizeMode.COVER}
-      shouldPlay
-      isLooping
+      contentFit="cover"
+      nativeControls={false}
     />
   )
 }

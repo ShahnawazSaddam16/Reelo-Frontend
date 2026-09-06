@@ -15,7 +15,14 @@
         "foregroundImage": "./assets/favicon.png",
         "backgroundImage": "./assets/favicon.png",
         "monochromeImage": "./assets/favicon.png"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ],
+      "package": "com.shahnawaz_butt15.Reelo"
     },
     "web": {
       "favicon": "./assets/favicon.png"

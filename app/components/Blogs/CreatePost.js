@@ -84,7 +84,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos],
       quality: 0.8,
     })
 
@@ -111,11 +111,14 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       formData.append("desc", desc)
 
       if (!media.existing) {
-        formData.append("content", {
-          uri: media.uri,
-          name: media.fileName || `upload-${Date.now()}.${media.type === "video" ? "mp4" : "jpg"}`,
-          type: media.type === "video" ? "video/mp4" : "image/jpeg",
-        })
+        try {
+          const fileResp = await fetch(media.uri)
+          const blob = await fileResp.blob()
+          const filename = media.fileName || `upload-${Date.now()}.${media.type === "video" ? "mp4" : "jpg"}`
+          formData.append("content", blob, filename)
+        } catch (e) {
+          console.log('Failed to attach media blob', e)
+        }
       }
 
       let res

@@ -22,7 +22,7 @@ export default function CreateStory({ visible, onClose, token, onCreated }) {
   const pickMedia = async () => {
     setError(null)
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos],
       quality: 0.8,
     })
     if (!result.canceled) setMedia(result.assets[0])
@@ -34,11 +34,14 @@ export default function CreateStory({ visible, onClose, token, onCreated }) {
     setError(null)
     try {
       const formData = new FormData()
-      formData.append('file', {
-        uri: media.uri,
-        name: media.fileName || `story.${media.uri.split('.').pop()}`,
-        type: media.type === 'video' ? 'video/mp4' : 'image/jpeg',
-      })
+      try {
+        const fileResp = await fetch(media.uri)
+        const blob = await fileResp.blob()
+        const filename = media.fileName || `story.${media.uri.split('.').pop()}`
+        formData.append('file', blob, filename)
+      } catch (e) {
+        console.log('Failed to attach story file blob', e)
+      }
 
       const res = await fetch(`${API_URL}/story/create-story`, {
         method: 'POST',

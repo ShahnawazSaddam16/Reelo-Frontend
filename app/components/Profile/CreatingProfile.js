@@ -56,7 +56,7 @@ export default function CreatingProfile() {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -82,11 +82,13 @@ export default function CreatingProfile() {
       formData.append("bio", bio);
       formData.append("links", links);
       if (avatar) {
-        formData.append("avator", {
-          uri: avatar.uri,
-          name: "avatar.jpg",
-          type: "image/jpeg",
-        });
+        try {
+          const fileResp = await fetch(avatar.uri)
+          const blob = await fileResp.blob()
+          formData.append("avator", blob, "avatar.jpg")
+        } catch (e) {
+          console.log('Failed to attach avatar blob', e)
+        }
       }
 
       const res = await fetch(`${API_URL}/profile/create-profile`, {

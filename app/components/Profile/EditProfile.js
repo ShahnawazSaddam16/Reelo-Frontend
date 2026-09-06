@@ -54,7 +54,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: [ImagePicker.MediaType.Images],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -77,11 +77,14 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
         formData.append("username", username)
         formData.append("bio", bio)
         links.split(",").map((link) => link.trim()).filter(Boolean).forEach((link) => formData.append("links", link))
-        formData.append("avator", {
-          uri: newAvator.uri,
-          name: newAvator.fileName || "avatar.jpg",
-          type: newAvator.mimeType || "image/jpeg",
-        })
+        try {
+          const fileResp = await fetch(newAvator.uri)
+          const blob = await fileResp.blob()
+          const filename = newAvator.fileName || "avatar.jpg"
+          formData.append("avator", blob, filename)
+        } catch (e) {
+          console.log('Failed to attach avatar blob', e)
+        }
 
         res = await fetch(`${API_URL}/profile/edit-profile`, {
           method: "PUT",
