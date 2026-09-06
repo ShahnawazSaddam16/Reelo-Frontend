@@ -9,7 +9,7 @@ import {
   Modal,
   Dimensions,
 } from "react-native"
-import { Video } from "expo-av"
+import { useVideoPlayer, VideoView } from "expo-video"
 import Swiper from "react-native-swiper"
 import { useNavigation } from "@react-navigation/native"
 import { PlusCircle, ImageOff, FileText, MoreVertical, X, RefreshCw, Heart, MessageCircle, Calendar } from "lucide-react-native"
@@ -21,6 +21,21 @@ const PAGE_SIZE = 6
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
 const SLIDE_HEIGHT = 420
+
+function PostVideoSlide({ uri }) {
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = false
+  })
+
+  return (
+    <VideoView
+      player={player}
+      style={{ width: SCREEN_WIDTH - 40, height: 260 }}
+      nativeControls
+      contentFit="cover"
+    />
+  )
+}
 
 export default function ManagingPosts({ onPostsUpdated }) {
 const API_URL = "https://api.reelo.buttnetworks.com/api";
@@ -160,14 +175,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   const renderMediaSlide = (m, isVideo) => {
     const uri = resolveMediaUrl(m)
     if (isVideo) {
-      return (
-        <Video
-          source={{ uri }}
-          style={{ width: SCREEN_WIDTH - 40, height: 260 }}
-          useNativeControls
-          resizeMode="cover"
-        />
-      )
+      return <PostVideoSlide uri={uri} />
     }
     return (
       <Pressable onPress={() => openViewer(uri)}>

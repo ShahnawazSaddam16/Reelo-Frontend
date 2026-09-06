@@ -9,7 +9,7 @@ import {
   Dimensions,
   Modal,
 } from "react-native";
-import { Video } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { useNavigation } from "@react-navigation/native";
 import { Heart, MessageCircle, User, ImageOff } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -43,6 +43,21 @@ function isVideoItem(m) {
   return false;
 }
 
+function PostVideo({ uri }) {
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = false;
+  });
+
+  return (
+    <VideoView
+      player={player}
+      style={{ width: SCREEN_WIDTH, height: 260 }}
+      nativeControls
+      contentFit="cover"
+    />
+  );
+}
+
 export default function PostCards() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState([]);
@@ -50,12 +65,9 @@ export default function PostCards() {
   const { token, user } = useAuth();
   const navigation = useNavigation();
 
-  // Comments modal state
   const [showCommentsFor, setShowCommentsFor] = useState(null);
 
-  // Per-post like state: { [postId]: { liked: boolean, likes: number } }
   const [likesState, setLikesState] = useState({});
-  // Per-post comment count: { [postId]: number }
   const [commentCounts, setCommentCounts] = useState({});
 
   const [viewerVisible, setViewerVisible] = useState(false);
@@ -126,7 +138,6 @@ export default function PostCards() {
   const handleToggleLike = async (postId) => {
     if (!postId) return;
 
-    // Optimistic update
     setLikesState((prev) => {
       const current = prev[postId] || { liked: false, likes: 0 };
       const nextLiked = !current.liked;
@@ -156,7 +167,6 @@ export default function PostCards() {
       }));
     } catch (e) {
       console.error("Like error", e);
-      // Revert optimistic update on failure
       setLikesState((prev) => {
         const current = prev[postId] || { liked: false, likes: 0 };
         const revertedLiked = !current.liked;
@@ -270,15 +280,9 @@ export default function PostCards() {
                   </Text>
                 </TouchableOpacity>
 
-                {/* Image */}
                 {mediaUrl ? (
                   mediaIsVideo ? (
-                    <Video
-                      source={{ uri: mediaUrl }}
-                      style={{ width: SCREEN_WIDTH, height: 260 }}
-                      useNativeControls
-                      resizeMode="cover"
-                    />
+                    <PostVideo uri={mediaUrl} />
                   ) : (
                     <TouchableOpacity
                       onPress={() => {
@@ -300,7 +304,6 @@ export default function PostCards() {
                   </View>
                 )}
 
-                {/* Details */}
                 <View className="px-4 py-4">
                   {item.title ? (
                     <Text className="text-white text-lg font-semibold">
@@ -361,7 +364,6 @@ export default function PostCards() {
         )}
       </ScrollView>
 
-      {/* Comments modal - separate component, own UI */}
       <PostCommentsModal
         visible={!!showCommentsFor}
         postId={showCommentsFor}
@@ -372,7 +374,6 @@ export default function PostCards() {
         onCommentCountChange={handleCommentCountChange}
       />
 
-      {/* Image viewer modal - now uses RN Modal for true full-screen coverage */}
       <Modal
         visible={viewerVisible}
         transparent

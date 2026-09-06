@@ -12,10 +12,25 @@ import {
   Animated,
 } from "react-native"
 import * as ImagePicker from "expo-image-picker"
-import { Video } from "expo-av"
+import { useVideoPlayer, VideoView } from "expo-video"
 import { ImagePlus, X, Sparkles } from "lucide-react-native"
 import { useNavigation, useRoute } from "@react-navigation/native"
 import { useAuth } from "../../../contexts/AuthContext"
+
+function MediaPreviewVideo({ uri }) {
+  const player = useVideoPlayer(uri, (player) => {
+    player.loop = false
+  })
+
+  return (
+    <VideoView
+      player={player}
+      style={{ width: "100%", height: 260 }}
+      nativeControls
+      contentFit="cover"
+    />
+  )
+}
 
 export default function CreatePost() {
 const API_URL = "https://api.reelo.buttnetworks.com/api";
@@ -196,12 +211,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
           {media ? (
             <View className="relative overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#121216]">
               {media.type === "video" ? (
-                <Video
-                  source={{ uri: media.uri }}
-                  style={{ width: "100%", height: 260 }}
-                  useNativeControls
-                  resizeMode="cover"
-                />
+                <MediaPreviewVideo uri={media.uri} />
               ) : (
                 <Image
                   source={{ uri: media.uri }}

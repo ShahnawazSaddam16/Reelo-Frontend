@@ -6,6 +6,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const API_URL = "https://api.reelo.buttnetworks.com/api";
 
+function StoryVideo({ uri }) {
+  return (
+    <Video
+      source={{ uri }}
+      style={{ flex: 1 }}
+      resizeMode={ResizeMode.COVER}
+      shouldPlay
+      isLooping
+    />
+  )
+}
+
 export default function StoryViewer({ visible, onClose, group, token }) {
   const [index, setIndex] = useState(0)
   const [liked, setLiked] = useState({})
@@ -107,13 +119,7 @@ export default function StoryViewer({ visible, onClose, group, token }) {
           }}
         >
           {story.mediaType === 'video' ? (
-            <Video
-              source={{ uri: story.content }}
-              style={{ flex: 1 }}
-              resizeMode={ResizeMode.COVER}
-              shouldPlay
-              isLooping
-            />
+            <StoryVideo key={story._id} uri={story.content} />
           ) : (
             <Image source={{ uri: story.content }} style={{ flex: 1 }} resizeMode="cover" />
           )}
