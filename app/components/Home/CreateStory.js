@@ -10,19 +10,14 @@ export default function CreateStory({ visible, onClose, token, onCreated }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
 
-  const safeParseJSON = async (res) => {
-    try {
-      return await res.json()
-    } catch (e) {
-      const text = await res.text().catch(() => '')
-      return { success: false, message: text || 'Non-JSON response from server' }
-    }
-  }
-
   const pickMedia = async () => {
     setError(null)
+    const mediaTypes = ImagePicker?.MediaType
+      ? [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos]
+      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos],
+      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
       quality: 0.8,
     })
     if (!result.canceled) setMedia(result.assets[0])
@@ -34,24 +29,32 @@ export default function CreateStory({ visible, onClose, token, onCreated }) {
     setError(null)
     try {
       const formData = new FormData()
-      try {
-        const fileResp = await fetch(media.uri)
-        const blob = await fileResp.blob()
-        const filename = media.fileName || `story.${media.uri.split('.').pop()}`
-        formData.append('file', blob, filename)
-      } catch (e) {
-        console.log('Failed to attach story file blob', e)
-      }
+      const filename = media.fileName || media.uri.split('/').pop()
+      const extMatch = /\.(\w+)$/.exec(filename)
+      const ext = extMatch ? extMatch[1] : media.uri.split('.').pop()
+      const type = media.mimeType || (media.type === 'video' ? `video/${ext}` : `image/${ext}`)
 
-      const res = await fetch(`${API_URL}/story/create-story`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+      formData.append('file', {
+        uri: media.uri,
+        name: filename,
+        type,
       })
 
-      const data = await safeParseJSON(res)
+      const xhrResult = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('POST', `${API_URL}/story/create-story`)
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+        xhr.onload = () => resolve({ status: xhr.status, text: xhr.responseText })
+        xhr.onerror = () => reject(new Error('Network request failed'))
+        xhr.send(formData)
+      })
+
+      let data
+      try {
+        data = JSON.parse(xhrResult.text)
+      } catch (e) {
+        data = { success: false, message: xhrResult.text || 'Non-JSON response from server' }
+      }
 
       if (data && data.success) {
         setMedia(null)

@@ -27,9 +27,21 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
           },
         })
 
-        const data = await res.json()
+        const ct = res.headers.get('content-type') || ''
+        let data
+        if (ct.includes('application/json')) {
+          try {
+            data = await res.json()
+          } catch (e) {
+            const text = await res.text().catch(() => '')
+            data = { success: false, message: text || 'Non-JSON response from server' }
+          }
+        } else {
+          const text = await res.text().catch(() => '')
+          data = { success: false, message: text || 'Non-JSON response from server' }
+        }
 
-        if (data.success) {
+        if (data && data.success) {
           setUsername(data.profile?.username || "")
           setBio(data.profile?.bio || "")
           setLinks(data.profile?.links?.join(", ") || "")
@@ -53,8 +65,12 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       return
     }
 
+    const mediaTypes = ImagePicker?.MediaType
+      ? [ImagePicker.MediaType.Images]
+      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,

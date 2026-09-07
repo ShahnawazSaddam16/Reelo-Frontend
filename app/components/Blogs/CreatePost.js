@@ -83,8 +83,12 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       return
     }
 
+    const mediaTypes = ImagePicker?.MediaType
+      ? [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos]
+      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos],
+      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
       quality: 0.8,
     })
 
@@ -111,45 +115,40 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       formData.append("desc", desc)
 
       if (!media.existing) {
-        try {
-          const fileResp = await fetch(media.uri)
-          const blob = await fileResp.blob()
-          const filename = media.fileName || `upload-${Date.now()}.${media.type === "video" ? "mp4" : "jpg"}`
-          formData.append("content", blob, filename)
-        } catch (e) {
-          console.log('Failed to attach media blob', e)
-        }
-      }
+        const filename = media.fileName || `upload-${Date.now()}.${media.type === "video" ? "mp4" : "jpg"}`
+        const extMatch = /\.(\w+)$/.exec(filename)
+        const ext = extMatch ? extMatch[1] : (media.type === "video" ? "mp4" : "jpg")
+        const type = media.mimeType || (media.type === "video" ? `video/${ext}` : `image/${ext}`)
 
-      let res
-
-      if (isEditMode) {
-        res = await fetch(`${API_URL}/blog/edit-post/${editingPost._id}`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        })
-      } else {
-        res = await fetch(`${API_URL}/blog/create-post`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
+        formData.append("content", {
+          uri: media.uri,
+          name: filename,
+          type,
         })
       }
 
-      const contentType = res.headers.get("content-type") || ""
+      const url = isEditMode
+        ? `${API_URL}/blog/edit-post/${editingPost._id}`
+        : `${API_URL}/blog/create-post`
+      const method = isEditMode ? "PUT" : "POST"
 
-      if (!contentType.includes("application/json")) {
+      const xhrResult = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open(method, url)
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`)
+        xhr.onload = () => resolve({ status: xhr.status, text: xhr.responseText })
+        xhr.onerror = () => reject(new Error("Network request failed"))
+        xhr.send(formData)
+      })
+
+      let data
+      try {
+        data = JSON.parse(xhrResult.text)
+      } catch (e) {
         setStatus({ type: "error", message: "Server error, please try again" })
         setTimeout(() => setStatus(null), 2500)
         return
       }
-
-      const data = await res.json()
 
       if (data.success) {
         setStatus({ type: "success", message: data.message || (isEditMode ? "Post updated successfully" : "Post created successfully") })

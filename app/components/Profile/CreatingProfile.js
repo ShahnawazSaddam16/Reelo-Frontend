@@ -55,8 +55,12 @@ export default function CreatingProfile() {
       showAlert("Permission needed", "Allow access to your photos to set a profile picture");
       return;
     }
+    const mediaTypes = ImagePicker?.MediaType
+      ? [ImagePicker.MediaType.Images]
+      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
+      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -82,25 +86,36 @@ export default function CreatingProfile() {
       formData.append("bio", bio);
       formData.append("links", links);
       if (avatar) {
-        try {
-          const fileResp = await fetch(avatar.uri)
-          const blob = await fileResp.blob()
-          formData.append("avator", blob, "avatar.jpg")
-        } catch (e) {
-          console.log('Failed to attach avatar blob', e)
-        }
+        const filename = avatar.fileName || "avatar.jpg"
+        const extMatch = /\.(\w+)$/.exec(filename)
+        const ext = extMatch ? extMatch[1] : "jpg"
+        const type = avatar.mimeType || `image/${ext}`
+
+        formData.append("avator", {
+          uri: avatar.uri,
+          name: filename,
+          type,
+        })
       }
 
-      const res = await fetch(`${API_URL}/profile/create-profile`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-      const data = await res.json();
+      const xhrResult = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open("POST", `${API_URL}/profile/create-profile`)
+        xhr.setRequestHeader("Authorization", `Bearer ${token}`)
+        xhr.onload = () => resolve({ status: xhr.status, text: xhr.responseText })
+        xhr.onerror = () => reject(new Error("Network request failed"))
+        xhr.send(formData)
+      })
 
-      if (!res.ok || !data.success) {
+      let data
+      try {
+        data = JSON.parse(xhrResult.text)
+      } catch (e) {
+        showAlert("Error", "Server error, please try again")
+        return
+      }
+
+      if (xhrResult.status < 200 || xhrResult.status >= 300 || !data.success) {
         showAlert("Error", data.message || "Could not create profile");
         return;
       }
