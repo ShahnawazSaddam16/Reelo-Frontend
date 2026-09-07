@@ -86,31 +86,49 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       setLoading(true)
       setStatus(null)
 
-      let res
+      let data
 
       if (newAvator) {
         const formData = new FormData()
         formData.append("username", username)
         formData.append("bio", bio)
         links.split(",").map((link) => link.trim()).filter(Boolean).forEach((link) => formData.append("links", link))
+
+        const filename = newAvator.fileName || "avatar.jpg"
+        const extMatch = /\.(\w+)$/.exec(filename)
+        const ext = extMatch ? extMatch[1] : "jpg"
+        const type = newAvator.mimeType || `image/${ext}`
+
+        formData.append("avator", {
+          uri: newAvator.uri,
+          name: filename,
+          type,
+        })
+
+        const xhrResult = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open("PUT", `${API_URL}/profile/edit-profile`)
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`)
+          xhr.onload = () => resolve({ status: xhr.status, text: xhr.responseText })
+          xhr.onerror = () => reject(new Error("Network request failed"))
+          xhr.send(formData)
+        })
+
         try {
-          const fileResp = await fetch(newAvator.uri)
-          const blob = await fileResp.blob()
-          const filename = newAvator.fileName || "avatar.jpg"
-          formData.append("avator", blob, filename)
+          data = JSON.parse(xhrResult.text)
         } catch (e) {
-          console.log('Failed to attach avatar blob', e)
+          setStatus({ type: "error", message: "Server error, please try again" })
+          setTimeout(() => setStatus(null), 2500)
+          return
         }
 
-        res = await fetch(`${API_URL}/profile/edit-profile`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        })
+        if (xhrResult.status < 200 || xhrResult.status >= 300 || !data.success) {
+          setStatus({ type: "error", message: data.message || "Something went wrong" })
+          setTimeout(() => setStatus(null), 2500)
+          return
+        }
       } else {
-        res = await fetch(`${API_URL}/profile/edit-profile`, {
+        const res = await fetch(`${API_URL}/profile/edit-profile`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -122,31 +140,32 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
             links: links.split(",").map((link) => link.trim()).filter(Boolean)
           })
         })
+
+        const contentType = res.headers.get("content-type") || ""
+
+        if (!contentType.includes("application/json")) {
+          setStatus({ type: "error", message: "Server error, please try again" })
+          setTimeout(() => setStatus(null), 2500)
+          return
+        }
+
+        data = await res.json()
+
+        if (!data.success) {
+          setStatus({ type: "error", message: data.message || "Something went wrong" })
+          setTimeout(() => setStatus(null), 2500)
+          return
+        }
       }
 
-      const contentType = res.headers.get("content-type") || ""
-
-      if (!contentType.includes("application/json")) {
-        setStatus({ type: "error", message: "Server error, please try again" })
-        setTimeout(() => setStatus(null), 2500)
-        return
-      }
-
-      const data = await res.json()
-
-      if (data.success) {
-        setProfile(data.profile)
-        setAvator(data.profile?.avator || "")
-        setNewAvator(null)
-        setStatus({ type: "success", message: data.message || "Profile Updated Successfully" })
-        setTimeout(() => {
-          setStatus(null)
-          setEdit(false)
-        }, 1200)
-      } else {
-        setStatus({ type: "error", message: data.message || "Something went wrong" })
-        setTimeout(() => setStatus(null), 2500)
-      }
+      setProfile(data.profile)
+      setAvator(data.profile?.avator || "")
+      setNewAvator(null)
+      setStatus({ type: "success", message: data.message || "Profile Updated Successfully" })
+      setTimeout(() => {
+        setStatus(null)
+        setEdit(false)
+      }, 1200)
     } catch (err) {
       console.log(err)
       setStatus({ type: "error", message: typeof err?.message === "string" ? err.message : "Something went wrong" })
@@ -156,6 +175,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     }
   }
 
+  
   return (
     <>
       {edit && (

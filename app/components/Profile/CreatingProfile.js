@@ -149,10 +149,10 @@ export default function CreatingProfile() {
           showsVerticalScrollIndicator={false}
           className="w-full"
         >
-          <BlurView
+        <BlurView
             intensity={40}
             tint="dark"
-            className="w-[300px] rounded-2xl border border-white/[0.08] p-6 overflow-hidden"
+            className="w-[400px] rounded-2xl border border-white/[0.08] p-6 overflow-hidden"
           >
             <View className="flex-row items-center mb-6">
               {step === 2 && (
