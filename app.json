@@ -35,6 +35,11 @@
       "expo-audio",
       "expo-video",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8a6df09b-6efe-4d9c-a15a-6486223cc2c6"
+      }
+    }
   }
 }
