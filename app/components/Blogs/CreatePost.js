@@ -83,17 +83,27 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       return
     }
 
-    const mediaTypes = ImagePicker?.MediaType
-      ? [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos]
-      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+    const mediaTypesOption = ImagePicker?.MediaTypeOptions
+      ? ImagePicker.MediaTypeOptions.All
+      : ImagePicker?.MediaType
+      ? ImagePicker.MediaType.All
+      : undefined
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
+      ...(mediaTypesOption !== undefined ? { mediaTypes: mediaTypesOption } : {}),
       quality: 0.8,
     })
 
     if (!result.canceled) {
-      setMedia(result.assets[0])
+      const asset = result.assets[0]
+      const normalized = {
+        ...asset,
+        type:
+          asset.type === "video" || (asset.mimeType && String(asset.mimeType).startsWith("video"))
+            ? "video"
+            : "image",
+      }
+      setMedia(normalized)
     }
   }
 

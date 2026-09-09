@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, Image, ScrollView, ActivityIndicator } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Plus, User } from 'lucide-react-native'
 import { useFocusEffect } from '@react-navigation/native'
@@ -19,7 +19,17 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [viewerVisible, setViewerVisible] = useState(false)
   const [activeGroup, setActiveGroup] = useState(null)
   const [createVisible, setCreateVisible] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const loadingMoreRef = useRef(false)
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const resolveAvatarUrl = (path) => {
     if (!path) return null
@@ -39,6 +49,9 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   }
 
   const fetchData = useCallback(async () => {
+    if (isMountedRef.current) {
+      setError(null)
+    }
     try {
       const headers = {
         'Content-Type': 'application/json',
@@ -54,6 +67,8 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
       const profileData = await safeParseJSON(profileRes)
       const storyData = await safeParseJSON(storyRes)
       const allStoriesData = await safeParseJSON(allStoriesRes)
+
+      if (!isMountedRef.current) return
 
       if (profileData && profileData.success) setProfile(profileData.profile || null)
       if (storyData && storyData.success) setMyStories(storyData.stories || [])
@@ -81,18 +96,25 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
 
         setOtherGroups(Object.values(grouped))
       }
+
+      if (!(profileData && profileData.success) && !(storyData && storyData.success) && !(allStoriesData && allStoriesData.success)) {
+        setError('Failed to load stories')
+      }
     } catch (err) {
       console.error(err)
+      if (isMountedRef.current) {
+        setError('Failed to load stories')
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setLoading(false)
+      }
     }
   }, [token, user])
 
   useEffect(() => {
     if (token && user?._id) {
       fetchData()
-      const retry = setTimeout(() => {
-        fetchData()
-      }, 1500)
-      return () => clearTimeout(retry)
     }
   }, [token, user, fetchData])
 
@@ -138,108 +160,121 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     <View
       style={{ borderBottomColor: 'rgba(255,255,255,0.12)', borderBottomWidth: 1, backgroundColor: '#0E0E10', paddingBottom: 4 }}
     >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        className="mt-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
-      >
-        <TouchableOpacity onPress={handleMyAvatarPress} activeOpacity={0.8} style={{ alignItems: 'center', marginRight: 16 }}>
-          {hasMyStory ? (
-            <LinearGradient
-              colors={['#a855f7', '#06b6d4', '#a855f7']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
+      {loading ? (
+        <View style={{ height: 88, alignItems: 'center', justifyContent: 'center' }}>
+          <ActivityIndicator color="#a855f7" />
+        </View>
+      ) : error ? (
+        <TouchableOpacity
+          onPress={fetchData}
+          style={{ height: 88, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Text style={{ color: '#A1A1AA', fontSize: 12 }}>{error} — tap to retry</Text>
+        </TouchableOpacity>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          className="mt-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
+        >
+          <TouchableOpacity onPress={handleMyAvatarPress} activeOpacity={0.8} style={{ alignItems: 'center', marginRight: 16 }}>
+            {hasMyStory ? (
+              <LinearGradient
+                colors={['#a855f7', '#06b6d4', '#a855f7']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
+                  {myAvatarUrl ? (
+                    <Image source={{ uri: myAvatarUrl, cache: 'reload' }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                  ) : (
+                    <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
+                      <User size={22} color="#A1A1AA" />
+                    </View>
+                  )}
+                </View>
+              </LinearGradient>
+            ) : (
+              <View style={{ width: 64, height: 64 }}>
                 {myAvatarUrl ? (
-                  <Image source={{ uri: myAvatarUrl, cache: 'reload' }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                  <Image
+                    source={{ uri: myAvatarUrl, cache: 'reload' }}
+                    style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}
+                  />
                 ) : (
-                  <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
-                    <User size={22} color="#A1A1AA" />
+                  <View
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 32,
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      backgroundColor: '#1B1B1F',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <User size={26} color="#A1A1AA" />
                   </View>
                 )}
-              </View>
-            </LinearGradient>
-          ) : (
-            <View style={{ width: 64, height: 64 }}>
-              {myAvatarUrl ? (
-                <Image
-                  source={{ uri: myAvatarUrl, cache: 'reload' }}
-                  style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)' }}
-                />
-              ) : (
                 <View
                   style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 32,
-                    borderWidth: 1,
-                    borderColor: 'rgba(255,255,255,0.12)',
-                    backgroundColor: '#1B1B1F',
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 22,
+                    height: 22,
+                    borderRadius: 11,
+                    backgroundColor: '#a855f7',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: '#0E0E10',
                   }}
                 >
-                  <User size={26} color="#A1A1AA" />
+                  <Plus size={13} color="#0E0E10" strokeWidth={3} />
                 </View>
-              )}
-              <View
-                style={{
-                  position: 'absolute',
-                  bottom: -2,
-                  right: -2,
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: '#a855f7',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#0E0E10',
-                }}
-              >
-                <Plus size={13} color="#0E0E10" strokeWidth={3} />
               </View>
-            </View>
-          )}
-          <Text className="text-white text-xs mt-2" numberOfLines={1} style={{ maxWidth: 64 }}>
-            Your Story
-          </Text>
-        </TouchableOpacity>
-
-        {visibleGroups.map((group) => (
-          <TouchableOpacity
-            key={group.userId}
-            onPress={() => handleUserAvatarPress(group)}
-            activeOpacity={0.8}
-            style={{ alignItems: 'center', marginRight: 16 }}
-          >
-            <LinearGradient
-              colors={['#a855f7', '#06b6d4', '#a855f7']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}
-            >
-              <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
-                {group.avatar ? (
-                  <Image source={{ uri: group.avatar, cache: 'reload' }} style={{ width: 52, height: 52, borderRadius: 26 }} />
-                ) : (
-                  <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
-                    <User size={22} color="#A1A1AA" />
-                  </View>
-                )}
-              </View>
-            </LinearGradient>
+            )}
             <Text className="text-white text-xs mt-2" numberOfLines={1} style={{ maxWidth: 64 }}>
-              {group.username}
+              Your Story
             </Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+
+          {visibleGroups.map((group) => (
+            <TouchableOpacity
+              key={group.userId}
+              onPress={() => handleUserAvatarPress(group)}
+              activeOpacity={0.8}
+              style={{ alignItems: 'center', marginRight: 16 }}
+            >
+              <LinearGradient
+                colors={['#a855f7', '#06b6d4', '#a855f7']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: '#0E0E10', alignItems: 'center', justifyContent: 'center' }}>
+                  {group.avatar ? (
+                    <Image source={{ uri: group.avatar, cache: 'reload' }} style={{ width: 52, height: 52, borderRadius: 26 }} />
+                  ) : (
+                    <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: '#1B1B1F', alignItems: 'center', justifyContent: 'center' }}>
+                      <User size={22} color="#A1A1AA" />
+                    </View>
+                  )}
+                </View>
+              </LinearGradient>
+              <Text className="text-white text-xs mt-2" numberOfLines={1} style={{ maxWidth: 64 }}>
+                {group.username}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
 
       <StoryViewer
         visible={viewerVisible}

@@ -30,7 +30,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 export default function CreatingProfile() {
   const navigation = useNavigation();
-  const { token } = useAuth();
+  const { token, checkAuth } = useAuth();
   const [step, setStep] = useState(1);
   const [avatar, setAvatar] = useState(null);
   const [username, setUsername] = useState("");
@@ -55,12 +55,14 @@ export default function CreatingProfile() {
       showAlert("Permission needed", "Allow access to your photos to set a profile picture");
       return;
     }
-    const mediaTypes = ImagePicker?.MediaType
-      ? [ImagePicker.MediaType.Images]
-      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+    const mediaTypesOption = ImagePicker?.MediaTypeOptions
+      ? ImagePicker.MediaTypeOptions.Images
+      : ImagePicker?.MediaType
+      ? ImagePicker.MediaType.Images
+      : undefined
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
+      ...(mediaTypesOption !== undefined ? { mediaTypes: mediaTypesOption } : {}),
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -121,6 +123,13 @@ export default function CreatingProfile() {
       }
 
       showAlert("Success", "Your profile has been created", true);
+      try {
+        if (typeof checkAuth === "function") {
+          await checkAuth()
+        }
+      } catch (e) {
+        // ignore
+      }
       navigation.navigate("HomeScreen");
       
     } catch (err) {

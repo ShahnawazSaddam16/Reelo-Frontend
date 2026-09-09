@@ -66,7 +66,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     }
 
     const mediaTypes = ImagePicker?.MediaType
-      ? [ImagePicker.MediaType.Images]
+      ? ImagePicker.MediaType.Images
       : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
 
     const result = await ImagePicker.launchImageLibraryAsync({

@@ -12,12 +12,20 @@ export default function CreateStory({ visible, onClose, token, onCreated }) {
 
   const pickMedia = async () => {
     setError(null)
-    const mediaTypes = ImagePicker?.MediaType
-      ? [ImagePicker.MediaType.Images, ImagePicker.MediaType.Videos]
-      : ImagePicker?.MediaTypeOptions?.Images ?? ImagePicker?.MediaTypeOptions
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) {
+      setError('Permission to access photos is required')
+      return
+    }
+
+    const mediaTypesOption = ImagePicker?.MediaTypeOptions
+      ? ImagePicker.MediaTypeOptions.All
+      : ImagePicker?.MediaType
+      ? ImagePicker.MediaType.All
+      : undefined
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      ...(mediaTypes !== undefined ? { mediaTypes } : {}),
+      ...(mediaTypesOption !== undefined ? { mediaTypes: mediaTypesOption } : {}),
       quality: 0.8,
     })
     if (!result.canceled) setMedia(result.assets[0])

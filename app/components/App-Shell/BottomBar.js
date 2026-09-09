@@ -138,9 +138,9 @@ export default function BottomBar() {
             }`}
             android_ripple={{ color: "rgba(255,255,255,0.08)" }}
           >
-            {key === "Profile" && avatar ? (
+            {key === "Profile" && (user?.avator || avatar) ? (
               <Image
-                source={{ uri: avatar }}
+                source={{ uri: user?.avator || avatar }}
                 className="h-[26px] w-[26px] rounded-full"
                 style={{
                   borderWidth: active ? 1.5 : 0,
