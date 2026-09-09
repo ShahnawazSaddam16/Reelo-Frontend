@@ -135,7 +135,7 @@ export default function CreatingProfile() {
   };
 
   return (
-    <View className="flex-1 bg-[#0E0E10]">
+    <View className="flex-1">
       <View className="absolute w-[260px] h-[260px] rounded-full bg-[#8B5CF6] opacity-[0.06] -top-[60px] -left-[60px]" />
       <View className="absolute w-[220px] h-[220px] rounded-full bg-[#6366F1] opacity-[0.05] -bottom-[40px] -right-[40px]" />
 
@@ -147,14 +147,14 @@ export default function CreatingProfile() {
           contentContainerStyle={{ flex: 1, alignItems: "center", justifyContent: "center" }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          className="w-full"
+          className="w-full max-w-[320px]"
         >
         <BlurView
             intensity={40}
             tint="dark"
-            className="w-[400px] rounded-2xl border border-white/[0.08] p-6 overflow-hidden"
+            className="rounded-2xl border border-white/[0.08] p-6 overflow-hidden"
           >
-            <View className="flex-row items-center mb-6">
+            <View className="flex-row w-full items-center mb-6">
               {step === 2 && (
                 <TouchableOpacity
                   onPress={() => setStep(1)}

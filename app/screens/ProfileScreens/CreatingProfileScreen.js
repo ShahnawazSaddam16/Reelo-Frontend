@@ -49,7 +49,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   }
   return (
     <>
-      <View className="flex-1 justify-center items-center bg-[#0E0E10]">
+      <View className="flex-1 bg-[#0E0E10]">
         <StatusBar style="light" />
         <CreatingProfile />
       </View>
