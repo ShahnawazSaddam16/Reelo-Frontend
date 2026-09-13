@@ -6,6 +6,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const API_URL = "https://api.reelo.buttnetworks.com/api";
 
+function getTimeAgo(dateString) {
+  const created = new Date(dateString)
+  const now = new Date()
+  const diffMs = now - created
+  const diffMins = Math.floor(diffMs / 60000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+
+  const diffHours = Math.floor(diffMins / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+
+  const diffDays = Math.floor(diffHours / 24)
+  return `${diffDays}d ago`
+}
+
 function StoryVideo({ uri }) {
   const player = useVideoPlayer(uri, (player) => {
     player.loop = true
@@ -107,6 +123,10 @@ export default function StoryViewer({ visible, onClose, group, token }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: 50, paddingHorizontal: 16 }}>
           <Image source={{ uri: group.avatar }} style={{ width: 34, height: 34, borderRadius: 17 }} />
           <Text className="text-white ml-3 font-semibold">{group.username}</Text>
+          <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(255,255,255,0.4)', marginHorizontal: 8 }} />
+          <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
+            {getTimeAgo(story.createdAt)}
+          </Text>
           <TouchableOpacity onPress={onClose} style={{ marginLeft: 'auto' }}>
             <X size={26} color="#fff" />
           </TouchableOpacity>
