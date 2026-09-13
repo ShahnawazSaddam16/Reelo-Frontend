@@ -262,6 +262,7 @@ export default function PostCommentsModal({
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.6)",
           justifyContent: "flex-end",
+          paddingBottom: 30,
         }}
       >
         <KeyboardAvoidingView
