@@ -50,8 +50,8 @@ export default function SettingsHeader() {
         showsVerticalScrollIndicator={false}
       >
         <NotificationsControls />
-        <DangerZone />
         <AccountType />
+        <DangerZone />
       </ScrollView>
     </View>
   );
