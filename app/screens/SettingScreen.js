@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DangerZone from '../components/Settings/DangerZone';
 import NotificationsControls from '../components/Settings/NotificationsControls';
 import { useAuth } from '../../contexts/AuthContext';
+import AccountType from '../components/Settings/AccountType';
 
 export default function SettingsHeader() {
   const navigation = useNavigation();
@@ -50,6 +51,7 @@ export default function SettingsHeader() {
       >
         <NotificationsControls />
         <DangerZone />
+        <AccountType />
       </ScrollView>
     </View>
   );
