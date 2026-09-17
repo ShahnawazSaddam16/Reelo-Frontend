@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, TouchableOpacity, TextInput, Alert, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Switch, TouchableOpacity, TextInput, Modal, ScrollView, Image, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -16,6 +16,7 @@ export default function AccountType() {
   const [followLoading, setFollowLoading] = useState(false);
   const [followers, setFollowers] = useState([]);
   const [followersLoading, setFollowersLoading] = useState(false);
+  const [customAlert, setCustomAlert] = useState({ visible: false, title: '', message: '' });
 
   useEffect(() => {
     const fetchSetting = async () => {
@@ -53,6 +54,10 @@ export default function AccountType() {
     }
   };
 
+  const showAlert = (title, message) => {
+    setCustomAlert({ visible: true, title, message });
+  };
+
   const toggleAccountType = async (value) => {
     setIsPrivate(value);
     setLoading(true);
@@ -86,13 +91,13 @@ export default function AccountType() {
       });
       const data = await res.json();
       if (!res.ok) {
-        Alert.alert('Error', data.message || 'Could not add follower');
+        showAlert('Error', data.message || 'Could not add follower');
       } else {
         setUsername('');
         fetchFollowers();
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong');
+      showAlert('Error', 'Something went wrong');
     } finally {
       setFollowLoading(false);
     }
@@ -112,13 +117,13 @@ export default function AccountType() {
       });
       const data = await res.json();
       if (!res.ok) {
-        Alert.alert('Error', data.message || 'Could not remove follower');
+        showAlert('Error', data.message || 'Could not remove follower');
       } else {
         setUsername('');
         fetchFollowers();
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong');
+      showAlert('Error', 'Something went wrong');
     } finally {
       setFollowLoading(false);
     }
@@ -243,6 +248,32 @@ export default function AccountType() {
           </ScrollView>
         )}
       </View>
+
+      <Modal
+        visible={customAlert.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCustomAlert({ visible: false, title: '', message: '' })}
+      >
+        <View className="flex-1 bg-black/60 items-center justify-center px-8">
+          <View className="w-full bg-[#101216] border border-[#1A1A1D] rounded-2xl px-5 py-5">
+            <Text className="text-white text-base font-semibold mb-2">
+              {customAlert.title}
+            </Text>
+            <Text className="text-[#A1A1AA] text-sm mb-5">
+              {customAlert.message}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setCustomAlert({ visible: false, title: '', message: '' })}
+              className="bg-[#8B5CF6] rounded-xl py-3 items-center"
+            >
+              <Text className="text-white text-sm font-semibold">
+                OK
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

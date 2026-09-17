@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, View, Text, TouchableOpacity, Image } from 'react-native'
 import { useVideoPlayer, VideoView } from 'expo-video'
-import { X, Heart, Eye, ChevronLeft, ChevronRight } from 'lucide-react-native'
+import { X, Heart, Eye, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const API_URL = "https://api.reelo.buttnetworks.com/api";
@@ -38,14 +38,21 @@ function StoryVideo({ uri }) {
   )
 }
 
-export default function StoryViewer({ visible, onClose, group, token }) {
+export default function StoryViewer({ visible, onClose, group, token, onStoryDeleted }) {
   const [index, setIndex] = useState(0)
   const [liked, setLiked] = useState({})
   const [likeCounts, setLikeCounts] = useState({})
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [stories, setStories] = useState([])
+  const [deletedIds, setDeletedIds] = useState(new Set())
   const insets = useSafeAreaInsets()
 
   useEffect(() => {
     if (!visible || !group) return
+
+    setStories(group.stories)
+    setDeletedIds(new Set())
 
     const initial = {}
     const initialCounts = {}
@@ -55,6 +62,7 @@ export default function StoryViewer({ visible, onClose, group, token }) {
     })
     setLiked(initial)
     setLikeCounts(initialCounts)
+    setIndex(0)
   }, [visible, group])
 
   useEffect(() => {
@@ -81,13 +89,15 @@ export default function StoryViewer({ visible, onClose, group, token }) {
     markAllSeen()
   }, [visible, group, token])
 
-  if (!group || !group.stories || group.stories.length === 0) return null
+  if (!group || !stories || stories.length === 0) return null
 
-  const story = group.stories[index]
+  const story = stories[index]
   const hasPrev = index > 0
-  const hasNext = index < group.stories.length - 1
+  const hasNext = index < stories.length - 1
+  const isDeleted = deletedIds.has(story._id)
 
   const toggleLike = async () => {
+    if (isDeleted) return
     try {
       const res = await fetch(`${API_URL}/story/like-story/${story._id}/like`, {
         method: 'POST',
@@ -117,6 +127,44 @@ export default function StoryViewer({ visible, onClose, group, token }) {
     else onClose()
   }
 
+  const confirmDelete = async () => {
+    try {
+      setDeleting(true)
+      const res = await fetch(`${API_URL}/story/delete-story/${story._id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const data = await res.json()
+
+      if (data && data.success) {
+        const deletedId = story._id
+        setShowDeleteConfirm(false)
+        setDeletedIds((prev) => new Set(prev).add(deletedId))
+        onStoryDeleted?.(deletedId)
+
+        setTimeout(() => {
+          setStories((prev) => {
+            const updated = prev.filter((s) => s._id !== deletedId)
+            if (updated.length === 0) {
+              onClose()
+              return prev
+            }
+            setIndex((i) => (i >= updated.length ? updated.length - 1 : i))
+            return updated
+          })
+        }, 1200)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <Modal visible={visible} animationType="fade" transparent={false} statusBarTranslucent onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#0E0E10' }}>
@@ -127,9 +175,16 @@ export default function StoryViewer({ visible, onClose, group, token }) {
           <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
             {getTimeAgo(story.createdAt)}
           </Text>
-          <TouchableOpacity onPress={onClose} style={{ marginLeft: 'auto' }}>
-            <X size={26} color="#fff" />
-          </TouchableOpacity>
+          <View style={{ marginLeft: 'auto', flexDirection: 'row', alignItems: 'center' }}>
+            {group.isOwner && !isDeleted && (
+              <TouchableOpacity onPress={() => setShowDeleteConfirm(true)} style={{ marginRight: 16 }}>
+                <Trash2 size={22} color="#fff" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity onPress={onClose}>
+              <X size={26} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View
@@ -142,7 +197,11 @@ export default function StoryViewer({ visible, onClose, group, token }) {
             backgroundColor: '#000',
           }}
         >
-          {story.mediaType === 'video' ? (
+          {isDeleted ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15 }}>Story unavailable</Text>
+            </View>
+          ) : story.mediaType === 'video' ? (
             <StoryVideo key={story._id} uri={story.content} />
           ) : (
             <Image source={{ uri: story.content }} style={{ flex: 1 }} resizeMode="cover" />
@@ -213,6 +272,25 @@ export default function StoryViewer({ visible, onClose, group, token }) {
             </TouchableOpacity>
           </View>
         </View>
+
+        <Modal visible={showDeleteConfirm} transparent animationType="fade" onRequestClose={() => setShowDeleteConfirm(false)}>
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 30 }}>
+            <View style={{ backgroundColor: '#18181B', borderRadius: 16, padding: 20, width: '100%' }}>
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600', marginBottom: 8 }}>Delete story?</Text>
+              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, marginBottom: 20 }}>
+                This action cannot be undone.
+              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <TouchableOpacity onPress={() => setShowDeleteConfirm(false)} style={{ paddingVertical: 8, paddingHorizontal: 14 }}>
+                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14 }}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={confirmDelete} disabled={deleting} style={{ paddingVertical: 8, paddingHorizontal: 14, marginLeft: 8, backgroundColor: '#a855f7', borderRadius: 8, opacity: deleting ? 0.6 : 1 }}>
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '600' }}>{deleting ? 'Deleting...' : 'Delete'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </Modal>
   )
