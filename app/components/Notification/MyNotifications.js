@@ -61,8 +61,8 @@ const NotificationItem = ({ item, onDelete }) => {
         </View>
       </View>
 
-      <View className="flex ml-3">
-        <Text className="text-white text-sm leading-5">
+      <View className="flex-1 ml-3 mr-2">
+        <Text className="text-white text-sm leading-5" numberOfLines={2}>
           <Text className="font-semibold">{item.username}</Text>
           {isLike ? ' liked your post' : ' commented on your post'}
           {!isLike && item.text ? (
@@ -74,25 +74,25 @@ const NotificationItem = ({ item, onDelete }) => {
         </Text>
       </View>
 
-      <View className="flex-col justify-center items-center">
-      {item.postcontent ? (
-        <Image
-          source={{ uri: item.postcontent }}
-          className="w-11 h-11 rounded-md ml-2"
-        />
-      ) : (
-        <View className="w-11 h-11 rounded-md ml-2 bg-[#1A1A1D] items-center justify-center">
-          <Ionicons name="image-outline" size={18} color="#8E8E93" />
-        </View>
-      )}
+      <View className="flex-row items-center">
+        {item.postcontent ? (
+          <Image
+            source={{ uri: item.postcontent }}
+            className="w-11 h-11 rounded-md"
+          />
+        ) : (
+          <View className="w-11 h-11 rounded-md bg-[#1A1A1D] items-center justify-center">
+            <Ionicons name="image-outline" size={18} color="#8E8E93" />
+          </View>
+        )}
 
-      <TouchableOpacity
-        onPress={() => onDelete(item._id)}
-        className="w-8 h-8 items-center justify-center ml-1"
-      >
-        <Ionicons name="trash-outline" size={18} color="#8E8E93" />
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          onPress={() => onDelete(item._id)}
+          className="w-8 h-8 items-center justify-center ml-2"
+        >
+          <Ionicons name="trash-outline" size={18} color="#8E8E93" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -196,7 +196,6 @@ export default function MyNotifications() {
             });
           }
         } catch (e) {
-          // If running in Expo Go or notifications module isn't available, skip scheduling
           console.log('Notification scheduling skipped:', e.message || e);
         }
       }, 1500);
@@ -248,7 +247,7 @@ export default function MyNotifications() {
   };
 
   return (
-    <View className="flex">
+    <View className="flex-1 bg-[#0E0E10]">
       <View className="w-full flex-row items-center px-4 pt-14 pb-3 border-b border-[#1A1A1D]">
         <TouchableOpacity
           onPress={() => navigation.navigate('HomeScreen')}
@@ -287,7 +286,7 @@ export default function MyNotifications() {
           ItemSeparatorComponent={() => (
             <View className="h-[0.5px] bg-[#1A1A1D] ml-[68px]" />
           )}
-          contentContainerStyle={{ paddingBottom: 24 }}
+          contentContainerStyle={{ paddingBottom: 24, flexGrow: 1 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

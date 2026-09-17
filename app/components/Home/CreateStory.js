@@ -18,10 +18,10 @@ export default function CreateStory({ visible, onClose, token, onCreated }) {
       return
     }
 
-    const mediaTypesOption = ImagePicker?.MediaTypeOptions
-      ? ImagePicker.MediaTypeOptions.All
-      : ImagePicker?.MediaType
+    const mediaTypesOption = ImagePicker?.MediaType
       ? ImagePicker.MediaType.All
+      : ImagePicker?.MediaTypeOptions
+      ? ImagePicker.MediaTypeOptions.All
       : undefined
 
     const result = await ImagePicker.launchImageLibraryAsync({

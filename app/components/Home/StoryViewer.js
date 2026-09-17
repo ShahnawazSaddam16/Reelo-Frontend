@@ -147,15 +147,15 @@ export default function StoryViewer({ visible, onClose, group, token, onStoryDel
         onStoryDeleted?.(deletedId)
 
         setTimeout(() => {
-          setStories((prev) => {
-            const updated = prev.filter((s) => s._id !== deletedId)
-            if (updated.length === 0) {
-              onClose()
-              return prev
-            }
-            setIndex((i) => (i >= updated.length ? updated.length - 1 : i))
-            return updated
-          })
+          const updated = stories.filter((s) => s._id !== deletedId)
+          if (updated.length === 0) {
+            setStories([])
+            setTimeout(() => onClose(), 0)
+            return
+          }
+
+          setStories(updated)
+          setIndex((i) => (i >= updated.length ? updated.length - 1 : i))
         }, 1200)
       }
     } catch (err) {
