@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, Modal } from "react-native";
 import { useAuth } from "../../../contexts/AuthContext";
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL } from "../../config/api";
 
 export default function EmailVerification({ email, onVerified, onBack }) {
   const { login } = useAuth();

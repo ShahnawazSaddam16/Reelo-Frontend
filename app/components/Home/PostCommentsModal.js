@@ -266,7 +266,8 @@ export default function PostCommentsModal({
         }}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
           style={{ maxHeight: SCREEN_HEIGHT * 0.75 }}
         >
           <View className="bg-[#0E0E10] rounded-t-3xl overflow-hidden border border-white/10">

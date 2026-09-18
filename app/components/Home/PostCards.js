@@ -14,34 +14,9 @@ import { useNavigation } from "@react-navigation/native";
 import { Heart, MessageCircle, User, ImageOff } from "lucide-react-native";
 import { useAuth } from "../../../contexts/AuthContext";
 import PostCommentsModal from "./PostCommentsModal";
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL, resolveMediaUrl, isVideoItem } from "../../config/api";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-
-function resolveMediaUrl(path) {
-  if (!path) return null;
-  let p = path;
-  if (typeof p === "object") {
-    p = p.url || p.path || p.content || p.file || p.src || null;
-  }
-  if (!p) return null;
-  if (
-    typeof p === "string" &&
-    (p.startsWith("http://") || p.startsWith("https://"))
-  )
-    return p;
-  const baseUrl = API_URL.replace(/\/api$/, "");
-  return `${baseUrl}/${String(p).replace(/\\/g, "/")}`;
-}
-
-function isVideoItem(m) {
-  if (!m) return false;
-  if (m.contentType) return String(m.contentType).startsWith("video");
-  if (typeof m === "string")
-    return m.endsWith(".mp4") || m.endsWith(".mov") || m.endsWith(".webm");
-  return false;
-}
 
 function PostVideo({ uri }) {
   const player = useVideoPlayer(uri, (player) => {

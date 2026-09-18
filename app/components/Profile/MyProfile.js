@@ -23,9 +23,9 @@ import {
 import { useAuth } from "../../../contexts/AuthContext";
 import EditProfile from "./EditProfile";
 import {useNavigation} from "@react-navigation/native";
+import { API_URL, resolveMediaUrl } from "../../config/api";
 
 export default function MyProfile() {
-const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState(null);
@@ -34,13 +34,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   const navigation = useNavigation();
   const { token } = useAuth();
 
-  const resolveAvatarUrl = (path) => {
-    if (!path) return null;
-    if (typeof path === "object" && path.uri) return path.uri;
-    if (path.startsWith("http://") || path.startsWith("https://")) return path;
-    const baseUrl = API_URL.replace(/\/api$/, "");
-    return `${baseUrl}/${path.replace(/\\/g, "/")}`;
-  };
+  const resolveAvatarUrl = resolveMediaUrl;
 
   const getLinksArray = (links) => {
     if (!links) return [];

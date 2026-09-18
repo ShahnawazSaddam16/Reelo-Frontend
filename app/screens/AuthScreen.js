@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, StatusBar } from "react-native";
+import { View, Platform, StatusBar } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useNavigation } from "@react-navigation/native";
 import Login from "../components/Auth/Login";
 import SignIn from "../components/Auth/SignIn";
@@ -23,7 +24,13 @@ export default function AuthScreen() {
   }
 
   return (
-    <View className="flex-1 justify-center items-center bg-[#0E0E10]">
+    <KeyboardAwareScrollView 
+      style={{ flex: 1, backgroundColor: "#0E0E10" }}
+      contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }} 
+      keyboardShouldPersistTaps="handled"
+      enableOnAndroid={true}
+      extraScrollHeight={60}
+    >
       <StatusBar style="light" />
       {forgotPassword ? (
         <ForgotPassword setForgotPassword={setForgotPassword} />
@@ -32,6 +39,6 @@ export default function AuthScreen() {
       ) : (
         <SignIn setSignIn={setSignIn} />
       )}
-    </View>
+    </KeyboardAwareScrollView>
   );
 }

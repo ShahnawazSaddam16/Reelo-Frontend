@@ -6,11 +6,11 @@ import { useFocusEffect } from '@react-navigation/native'
 import { useAuth } from '../../../contexts/AuthContext'
 import StoryViewer from './StoryViewer'
 import CreateStory from './CreateStory'
+import { API_URL, resolveMediaUrl } from '../../config/api'
 
 const PAGE_SIZE = 10
 
 export default function Stories() {
-const API_URL = "https://api.reelo.buttnetworks.com/api";
   const { token, user } = useAuth()
   const [profile, setProfile] = useState(null)
   const [myStories, setMyStories] = useState([])
@@ -31,13 +31,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     }
   }, [])
 
-  const resolveAvatarUrl = (path) => {
-    if (!path) return null
-    if (typeof path === 'object' && path.uri) return path.uri
-    if (path.startsWith('http://') || path.startsWith('https://')) return path
-    const baseUrl = API_URL.replace(/\/api$/, '')
-    return `${baseUrl}/${path.replace(/\\/g, '/')}`
-  }
+  const resolveAvatarUrl = resolveMediaUrl;
 
   const safeParseJSON = async (res) => {
     try {

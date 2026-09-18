@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, TouchableOpacity, TextInput, Modal, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, Switch, TouchableOpacity, TextInput, Alert, ScrollView, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../contexts/AuthContext';
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL } from "../../config/api";
 
 export default function AccountType() {
   const navigation = useNavigation();
@@ -130,7 +129,7 @@ export default function AccountType() {
   };
 
   return (
-    <View className="flex-1">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
       <View className="w-full flex-row items-center px-4 pt-1 pb-3">
         <Text className="text-white text-lg font-bold ml-2">
           Account Type
@@ -248,32 +247,6 @@ export default function AccountType() {
           </ScrollView>
         )}
       </View>
-
-      <Modal
-        visible={customAlert.visible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCustomAlert({ visible: false, title: '', message: '' })}
-      >
-        <View className="flex-1 bg-black/60 items-center justify-center px-8">
-          <View className="w-full bg-[#101216] border border-[#1A1A1D] rounded-2xl px-5 py-5">
-            <Text className="text-white text-base font-semibold mb-2">
-              {customAlert.title}
-            </Text>
-            <Text className="text-[#A1A1AA] text-sm mb-5">
-              {customAlert.message}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setCustomAlert({ visible: false, title: '', message: '' })}
-              className="bg-[#8B5CF6] rounded-xl py-3 items-center"
-            >
-              <Text className="text-white text-sm font-semibold">
-                OK
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

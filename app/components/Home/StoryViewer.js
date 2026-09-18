@@ -3,8 +3,7 @@ import { Modal, View, Text, TouchableOpacity, Image } from 'react-native'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { X, Heart, Eye, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL } from '../../config/api';
 
 function getTimeAgo(dateString) {
   const created = new Date(dateString)

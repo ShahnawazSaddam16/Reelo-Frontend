@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Text, View, TextInput, TouchableOpacity, ActivityIndicator, Modal } from "react-native";
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL } from "../../config/api";
 
 export default function ForgotPassword({ setForgotPassword }) {
   const [step, setStep] = useState(1);

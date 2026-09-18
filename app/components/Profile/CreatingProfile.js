@@ -25,8 +25,7 @@ import {
 } from "lucide-react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuth } from "../../../contexts/AuthContext";
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL } from "../../config/api";
 
 export default function CreatingProfile() {
   const navigation = useNavigation();

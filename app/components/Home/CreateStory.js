@@ -2,8 +2,7 @@ import React, { useState } from 'react'
 import { Modal, View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { X, Upload, AlertCircle } from 'lucide-react-native'
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
+import { API_URL } from '../../config/api';
 
 export default function CreateStory({ visible, onClose, token, onCreated }) {
   const [media, setMedia] = useState(null)

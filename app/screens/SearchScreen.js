@@ -10,6 +10,8 @@ import {
   Animated,
   TouchableOpacity,
   Easing,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -202,7 +204,7 @@ export default function SearchScreen() {
   });
 
   return (
-    <View className="flex-1 bg-[#0E0E10]">
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1 bg-[#0E0E10]">
       <StatusBar barStyle="light-content" />
 
       <View style={{ paddingTop: insets.top + 14 }} className="px-5 pb-2">
@@ -274,6 +276,6 @@ export default function SearchScreen() {
       )}
 
       <BottomBar />
-    </View>
+    </KeyboardAvoidingView>
   );
 }

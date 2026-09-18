@@ -14,6 +14,7 @@ import Swiper from "react-native-swiper";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { ImageOff, FileText, X, Heart, MessageCircle, Calendar } from "lucide-react-native"
 import { useAuth } from "../../../contexts/AuthContext"
+import { API_URL, resolveMediaUrl, isVideoItem } from "../../config/api"
 
 const SCREEN_WIDTH = Dimensions.get("window").width
 const SCREEN_HEIGHT = Dimensions.get("window").height
@@ -35,7 +36,6 @@ function PostVideoSlide({ uri }) {
 }
 
 export default function UserPosts () {
-const API_URL = "https://api.reelo.buttnetworks.com/api";
   const { token } = useAuth();
   const route = useRoute();
   const { profileId } = route.params;
@@ -44,17 +44,6 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [loading, setLoading] = useState(true)
   const [viewerVisible, setViewerVisible] = useState(false)
   const [viewerUri, setViewerUri] = useState(null)
-
-  const resolveMediaUrl = (path) => {
-    if (!path) return null
-    if (typeof path === "object") {
-      path = path.url || path.path || path.content || path.file || path.src || null
-    }
-    if (typeof path !== "string") return null
-    if (path.startsWith("http://") || path.startsWith("https://")) return path
-    const baseUrl = API_URL.replace(/\/api$/, "")
-    return `${baseUrl}/${path.replace(/\\/g, "/")}`
-  }
 
   const formatPostDate = (dateStr) => {
     if (!dateStr) return ""
@@ -121,12 +110,6 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     if (Array.isArray(item.content)) return item.content.filter(Boolean)
     if (item.content) return [item.content]
     return []
-  }
-
-  const isVideoItem = (m) => {
-    if (m && m.contentType) return m.contentType.startsWith("video")
-    if (typeof m === "string") return m.endsWith(".mp4") || m.endsWith(".mov")
-    return false
   }
 
   const openViewer = (uri) => {

@@ -5,9 +5,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { io } from "socket.io-client";
 import { useAuth } from "../../../contexts/AuthContext";
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
-const SOCKET_URL = "https://api.reelo.buttnetworks.com";
+import { API_URL, SOCKET_URL } from "../../config/api";
 
 export default function BottomBar() {
   const navigation = useNavigation();
@@ -79,8 +77,12 @@ export default function BottomBar() {
   useEffect(() => {
     if (!user?._id) return;
 
-    const socket = io(SOCKET_URL);
-
+    const socket = io(SOCKET_URL, {
+      auth: {
+        token,
+      },
+    });
+    
     socket.emit("register", user._id);
 
     socket.on("newNotification", () => {

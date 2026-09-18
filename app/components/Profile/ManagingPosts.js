@@ -16,6 +16,7 @@ import { PlusCircle, ImageOff, FileText, MoreVertical, X, RefreshCw, Heart, Mess
 import { useAuth } from "../../../contexts/AuthContext"
 import PostOptionsMenu from "./PostOptionsMenu"
 import DeleteConfirmModal from "./DeleteConfirmmodal"
+import { API_URL, resolveMediaUrl, isVideoItem } from "../../config/api"
 
 const PAGE_SIZE = 6
 const SCREEN_WIDTH = Dimensions.get("window").width
@@ -38,7 +39,6 @@ function PostVideoSlide({ uri }) {
 }
 
 export default function ManagingPosts({ onPostsUpdated }) {
-const API_URL = "https://api.reelo.buttnetworks.com/api";
   const navigation = useNavigation()
   const { token } = useAuth()
 
@@ -56,17 +56,6 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const menuButtonRefs = useRef({})
-
-  const resolveMediaUrl = (path) => {
-    if (!path) return null
-    if (typeof path === "object") {
-      path = path.url || path.path || path.content || path.file || path.src || null
-    }
-    if (typeof path !== "string") return null
-    if (path.startsWith("http://") || path.startsWith("https://")) return path
-    const baseUrl = API_URL.replace(/\/api$/, "")
-    return `${baseUrl}/${path.replace(/\\/g, "/")}`
-  }
 
   const formatPostDate = (dateStr) => {
     if (!dateStr) return ""
@@ -154,12 +143,6 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
     if (Array.isArray(item.content)) return item.content.filter(Boolean)
     if (item.content) return [item.content]
     return []
-  }
-
-  const isVideoItem = (m) => {
-    if (m && m.contentType) return m.contentType.startsWith("video")
-    if (typeof m === "string") return m.endsWith(".mp4") || m.endsWith(".mov")
-    return false
   }
 
   const openViewer = (uri) => {

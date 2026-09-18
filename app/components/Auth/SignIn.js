@@ -6,10 +6,9 @@ import * as SecureStore from "expo-secure-store";
 import EmailVerification from "./EmailVerification.js";
 import { useFonts, GrandHotel_400Regular } from "@expo-google-fonts/grand-hotel";
 import * as SplashScreen from "expo-splash-screen";
+import { API_URL } from "../../config/api";
 
 SplashScreen.preventAutoHideAsync();
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
 
 export default function SignIn({ setSignIn }) {
   const navigation = useNavigation();

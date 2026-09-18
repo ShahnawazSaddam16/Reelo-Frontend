@@ -2,10 +2,9 @@ import { useState, useEffect } from "react"
 import { View, Text, TextInput, Pressable, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Image } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import {useAuth} from "../../../contexts/AuthContext";
+import { API_URL } from "../../config/api";
 
 export default function EditProfile({ edit, setEdit, profile, setProfile }) {
-
-const API_URL = "https://api.reelo.buttnetworks.com/api";
   const [username, setUsername] = useState(profile?.username || "")
   const [bio, setBio] = useState(profile?.bio || "")
   const [links, setLinks] = useState(profile?.links?.join(", ") || "")
@@ -182,7 +181,7 @@ const API_URL = "https://api.reelo.buttnetworks.com/api";
         <View className="absolute inset-0 bg-black justify-center z-50">
           <Pressable className="absolute inset-0" onPress={() => setEdit(false)} />
 
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
             <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
               <View className="bg-neutral-950 rounded-t-3xl min-h-[300px] px-6 pt-0 pb-0 border-t border-purple-500/20">
                 <View className="w-12 h-1.5 bg-neutral-700 rounded-full self-center mb-6" />

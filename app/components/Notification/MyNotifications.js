@@ -12,11 +12,9 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { io } from 'socket.io-client';
-import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
+import { API_URL, SOCKET_URL } from '../../config/api';
 
-const API_URL = "https://api.reelo.buttnetworks.com/api";
-const SOCKET_URL = "https://api.reelo.buttnetworks.com";
 const LIMIT = 10;
 
 const timeAgo = (date) => {
@@ -160,8 +158,12 @@ export default function MyNotifications() {
   useEffect(() => {
     if (!user?._id) return;
 
-    const socket = io(SOCKET_URL);
-
+    const socket = io(SOCKET_URL, {
+      auth: {
+        token,
+      },
+    });
+    
     socket.emit("register", user._id);
 
     socket.on("newNotification", (notification) => {
